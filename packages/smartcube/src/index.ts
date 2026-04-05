@@ -12,7 +12,11 @@ export {
   isValidFacelets,
   SOLVED_FACELETS,
 } from "./cube-state";
-export { canUseBrowserBluetooth, connectBrowserSmartcube } from "./browser";
+export {
+  canUseBrowserBluetooth,
+  connectBrowserSmartcube,
+  connectGanBrowserSmartcube,
+} from "./browser";
 export { SessionCore } from "./session";
 export { createSimulatorSmartcube } from "./simulator";
 export type {

@@ -94,6 +94,22 @@ export class SessionCore implements SmartcubeSession {
     this.emit();
   }
 
+  setFacelets(facelets: string): void {
+    this.state = {
+      ...this.state,
+      facelets,
+    };
+    this.emit();
+  }
+
+  markDisconnected(): void {
+    this.state = {
+      ...this.state,
+      connected: false,
+    };
+    this.emit();
+  }
+
   setName(name: string): void {
     this.state = {
       ...this.state,

@@ -24,6 +24,9 @@ export default function Page() {
     (state) => state.bluetoothAvailable,
   );
   const connectHardware = useArcadeStore((state) => state.connectHardware);
+  const connectGanHardware = useArcadeStore(
+    (state) => state.connectGanHardware,
+  );
   const connectSimulator = useArcadeStore((state) => state.connectSimulator);
   const cubeState = useArcadeStore((state) => state.cubeState);
   const disconnect = useArcadeStore((state) => state.disconnect);
@@ -130,13 +133,20 @@ export default function Page() {
             </button>
           </div>
           <p className="panel__copy">
-            Hardware flow: click connect, approve the browser Bluetooth chooser,
-            pick your device, then keep the cube oriented with white on top and
-            green facing you.
+            Hardware flow: choose the connect path that matches your cube,
+            approve the browser Bluetooth chooser, pick your device, then keep
+            the cube oriented with white on top and green facing you.
           </p>
           <div className="button-row">
             <button onClick={() => void connectHardware()} type="button">
-              Connect Smartcube
+              Connect Standard Smartcube
+            </button>
+            <button
+              className="secondary"
+              onClick={() => void connectGanHardware()}
+              type="button"
+            >
+              Connect GAN Family
             </button>
             <button
               className="secondary"
@@ -153,6 +163,10 @@ export default function Page() {
             </p>
           ) : null}
           {error ? <p className="panel__warning">{error}</p> : null}
+          <p className="panel__copy">
+            Standard path: GoCube, Rubik&apos;s Connected, GiiKER, HEYKUBE. GAN
+            path: GAN, Monster Go, AiCube, and newer GAN ui models.
+          </p>
           <div className="button-row">
             <button className="secondary" onClick={resyncCube} type="button">
               <RefreshCw size={16} />

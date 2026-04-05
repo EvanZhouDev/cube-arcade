@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "cubing": "^0.57.4",
+    "gan-web-bluetooth": "^3.0.2",
     "zod": "^4.1.11"
   }
 }
