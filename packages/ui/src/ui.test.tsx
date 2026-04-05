@@ -40,7 +40,14 @@ describe("ui package", () => {
   });
 
   it("renders a snake board snapshot", () => {
-    const { container } = render(<GameView snapshot={snakeSnapshot} />);
+    const { container } = render(
+      <GameView
+        connected
+        onReset={() => {}}
+        paused={false}
+        snapshot={snakeSnapshot}
+      />,
+    );
     expect(container.querySelectorAll(".board__cell--head")).toHaveLength(1);
     expect(container.querySelectorAll(".board__cell--food")).toHaveLength(1);
   });

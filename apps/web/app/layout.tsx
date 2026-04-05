@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Silkscreen, VT323 } from "next/font/google";
+import { Press_Start_2P, VT323 } from "next/font/google";
 
 import "./globals.css";
 
-const arcadeDisplay = Silkscreen({
+const arcadeDisplay = Press_Start_2P({
   subsets: ["latin"],
   variable: "--font-arcade",
-  weight: ["400", "700"],
+  weight: "400",
 });
 
 const arcadeText = VT323({

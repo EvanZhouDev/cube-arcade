@@ -7,12 +7,12 @@ import { clsx } from "clsx";
 import type { CSSProperties } from "react";
 
 const FACE_TRANSFORMS: Record<FaceName, string> = {
-  B: "rotateY(180deg) translateZ(6.4rem)",
-  D: "rotateX(-90deg) translateZ(6.4rem)",
-  F: "translateZ(6.4rem)",
-  L: "rotateY(-90deg) translateZ(6.4rem)",
-  R: "rotateY(90deg) translateZ(6.4rem)",
-  U: "rotateX(90deg) translateZ(6.4rem)",
+  B: "rotateY(180deg) translateZ(var(--cube-half))",
+  D: "rotateX(-90deg) translateZ(var(--cube-half))",
+  F: "translateZ(var(--cube-half))",
+  L: "rotateY(-90deg) translateZ(var(--cube-half))",
+  R: "rotateY(90deg) translateZ(var(--cube-half))",
+  U: "rotateX(90deg) translateZ(var(--cube-half))",
 };
 
 const TURN_SYMBOL: Record<CommandBinding["turn"], string> = {
@@ -100,6 +100,7 @@ export function ControlCube({ bindings, facelets }: ControlCubeProps) {
     <div className="control-cube">
       <div className="control-cube__stage">
         <div className="control-cube__body">
+          <div className="control-cube__core" />
           {VISIBLE_FACES.map((face) => (
             <StickerFace
               bindings={bindings.filter((binding) => binding.face === face)}

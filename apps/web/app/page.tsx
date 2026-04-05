@@ -121,15 +121,6 @@ export default function Page() {
   const statusLabel = cubeState.connected
     ? "CUBE CONNECTED"
     : "NO CUBE CONNECTED";
-  const screenStatus = cubeState.connected
-    ? paused
-      ? "INPUT PAUSED"
-      : snapshot.gameOver
-        ? "GAME OVER"
-        : snapshot.won
-          ? "RUN CLEARED"
-          : "LIVE SIGNAL"
-    : "NO SIGNAL";
 
   async function handleStandardConnect() {
     await connectHardware();
@@ -154,19 +145,11 @@ export default function Page() {
 
   return (
     <main className="arcade-shell">
-      <header className="topbar pixel-panel">
-        <div className="brand-block">
-          <p className="brand-block__eyebrow">SMARTCUBE PIXEL ARCADE</p>
-          <h1>CUBE ARCADE</h1>
-        </div>
-        <div className="topbar__readouts">
-          <div className="readout-box">
-            <span>GAME</span>
-            <strong>{meta.name.toUpperCase()}</strong>
-          </div>
-          <div className="readout-box">
-            <span>SCORE</span>
-            <strong>{snapshot.score}</strong>
+      <header className="topbar">
+        <div className="topbar__inner">
+          <div className="brand-block">
+            <p className="brand-block__eyebrow">SMARTCUBE PIXEL ARCADE</p>
+            <h1>CUBE ARCADE</h1>
           </div>
           <button
             className={clsx("status-button", {
@@ -188,146 +171,134 @@ export default function Page() {
         </div>
       </header>
 
-      <div className="arcade-layout">
-        <aside className="pixel-panel game-sidebar">
-          <div className="section-label">SELECT GAME</div>
-          <div className="game-sidebar__list">
-            {ARCADE_GAMES.map((game) => (
-              <button
-                className={clsx("game-sidebar__item", {
-                  "game-sidebar__item--active": game.meta.id === gameId,
-                })}
-                data-testid={`game-card-${game.meta.id}`}
-                key={game.meta.id}
-                onClick={() => selectGame(game.meta.id)}
-                style={{ "--game-accent": game.meta.accent } as CSSProperties}
-                type="button"
-              >
-                <strong>{game.meta.name}</strong>
-                <span>{game.meta.tagline}</span>
-              </button>
-            ))}
-          </div>
-          <div className="sidebar-note">
-            <span>ORIENTATION</span>
-            <strong>WHITE TOP / GREEN FRONT</strong>
-          </div>
-        </aside>
-
-        <section
-          className="pixel-panel cabinet"
-          style={{ "--game-accent": meta.accent } as CSSProperties}
-        >
-          <div className="cabinet__header">
-            <div>
-              <div className="section-label">CURRENT CABINET</div>
-              <h2>{meta.name}</h2>
-              <p>{meta.description}</p>
-            </div>
-            <button
-              className="ghost-button cabinet__reset"
-              onClick={resetGame}
-              type="button"
-            >
-              RESET RUN
-            </button>
-          </div>
-
-          <div
-            className={clsx("cabinet__screen", {
-              "cabinet__screen--offline": !cubeState.connected,
-            })}
-          >
-            <div className="cabinet__statusline">
-              <span>{screenStatus}</span>
-              <span>
-                {cubeState.connected
-                  ? "TURN THE CUBE TO PLAY"
-                  : "PRESS CONNECT TO START"}
-              </span>
-            </div>
-            <div className="cabinet__viewport" data-testid="game-surface">
-              <GameView snapshot={snapshot} />
-            </div>
-            {!cubeState.connected ? (
-              <div className="cabinet__overlay">
-                <p>NO CUBE LINK</p>
+      <div className="arcade-content">
+        <div className="arcade-layout">
+          <aside className="pixel-panel game-sidebar">
+            <div className="section-label">SELECT GAME</div>
+            <div className="game-sidebar__list">
+              {ARCADE_GAMES.map((game) => (
                 <button
-                  data-testid="connect-cube-button"
-                  onClick={() => {
-                    setIsConnectModalOpen(true);
-                  }}
+                  className={clsx("game-sidebar__item", {
+                    "game-sidebar__item--active": game.meta.id === gameId,
+                  })}
+                  data-testid={`game-card-${game.meta.id}`}
+                  key={game.meta.id}
+                  onClick={() => selectGame(game.meta.id)}
+                  style={{ "--game-accent": game.meta.accent } as CSSProperties}
                   type="button"
                 >
-                  CONNECT CUBE
+                  <strong>{game.meta.name}</strong>
+                  <span>{game.meta.tagline}</span>
                 </button>
-              </div>
-            ) : null}
-          </div>
-        </section>
+              ))}
+            </div>
+          </aside>
 
-        <aside className="pixel-panel cube-sidebar">
-          <div className="section-label">CONTROL CUBE</div>
-          <div
-            className={clsx("cube-sidebar__visual", {
-              "cube-sidebar__visual--offline": !cubeState.connected,
-            })}
+          <section
+            className="pixel-panel cabinet"
+            style={{ "--game-accent": meta.accent } as CSSProperties}
           >
-            <ControlCube bindings={bindings} facelets={cubeState.facelets} />
-            {!cubeState.connected ? (
-              <div className="cube-sidebar__overlay">CUBE OFFLINE</div>
-            ) : null}
-          </div>
-
-          <div className="signal-strip">
-            <div>
-              <span>LAST TURN</span>
-              <strong data-testid="status-last-move">
-                {cubeState.lastMove ?? "NONE"}
-              </strong>
-            </div>
-            <div>
-              <span>INPUT</span>
-              <strong data-testid="status-last-command">
-                {cubeState.lastCommand ?? "WAITING"}
-              </strong>
-            </div>
-          </div>
-
-          <div className="control-list">
-            {bindings.map((binding) => {
-              const gameControl = meta.controls.find(
-                (control) => control.command === binding.command,
-              );
-              return (
-                <div className="control-list__item" key={binding.move}>
-                  <div
-                    className="control-list__swatch"
-                    style={{ backgroundColor: binding.faceColor }}
-                  />
-                  <div>
-                    <strong>{gameControl?.label ?? binding.command}</strong>
-                    <p>
-                      {binding.move} on {binding.faceLabel.toUpperCase()}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {!cubeState.connected ? (
-            <button
-              className="ghost-button cube-sidebar__connect"
-              onClick={() => {
-                setIsConnectModalOpen(true);
-              }}
-              type="button"
+            <div
+              className={clsx("cabinet__screen", {
+                "cabinet__screen--offline": !cubeState.connected,
+              })}
             >
-              CONNECT CUBE
-            </button>
-          ) : null}
-        </aside>
+              <div className="cabinet__viewport" data-testid="game-surface">
+                <GameView
+                  connected={cubeState.connected}
+                  onReset={resetGame}
+                  paused={paused}
+                  snapshot={snapshot}
+                />
+              </div>
+              {!cubeState.connected ? (
+                <div className="cabinet__overlay">
+                  <p>NO CUBE LINK</p>
+                  <button
+                    data-testid="connect-cube-button"
+                    onClick={() => {
+                      setIsConnectModalOpen(true);
+                    }}
+                    type="button"
+                  >
+                    CONNECT CUBE
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </section>
+
+          <aside className="pixel-panel cube-sidebar">
+            <div className="cube-sidebar__orientation">
+              <span>ORIENTATION</span>
+              <strong>WHITE TOP</strong>
+              <strong>GREEN FRONT</strong>
+            </div>
+            <div className="section-label">CONTROL CUBE</div>
+            <div
+              className={clsx("cube-sidebar__visual", {
+                "cube-sidebar__visual--offline": !cubeState.connected,
+              })}
+            >
+              <ControlCube bindings={bindings} facelets={cubeState.facelets} />
+              {!cubeState.connected ? (
+                <div className="cube-sidebar__overlay">CUBE OFFLINE</div>
+              ) : null}
+            </div>
+
+            <div className="signal-strip">
+              <div>
+                <span>LAST TURN</span>
+                <strong data-testid="status-last-move">
+                  {cubeState.lastMove ?? "NONE"}
+                </strong>
+              </div>
+              <div>
+                <span>INPUT</span>
+                <strong data-testid="status-last-command">
+                  {cubeState.lastCommand ?? "WAITING"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="section-label cube-sidebar__controls-title">
+              CONTROLS
+            </div>
+            <div className="control-list">
+              {bindings.map((binding) => {
+                const gameControl = meta.controls.find(
+                  (control) => control.command === binding.command,
+                );
+                return (
+                  <div className="control-list__item" key={binding.move}>
+                    <div
+                      className="control-list__swatch"
+                      style={{ backgroundColor: binding.faceColor }}
+                    />
+                    <div>
+                      <strong>{gameControl?.label ?? binding.command}</strong>
+                      <p>
+                        {binding.move} on {binding.faceLabel.toUpperCase()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {!cubeState.connected ? (
+              <button
+                className="ghost-button cube-sidebar__connect"
+                onClick={() => {
+                  setIsConnectModalOpen(true);
+                }}
+                type="button"
+              >
+                CONNECT CUBE
+              </button>
+            ) : null}
+          </aside>
+        </div>
       </div>
 
       {isDebugMode ? (
