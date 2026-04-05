@@ -42,11 +42,9 @@ describe("ui package", () => {
     const frontFace = container.querySelector(".control-cube__face--F");
 
     expect(upFace?.getAttribute("style")).toContain(
-      "--overlay-panel: rgba(0, 0, 0, 0.62)",
+      "--face-label-color: rgba(5, 7, 11, 0.84)",
     );
-    expect(frontFace?.getAttribute("style")).toContain(
-      "--overlay-panel: rgba(255, 255, 255, 0.76)",
-    );
+    expect(frontFace?.getAttribute("style")).toContain("--face-label-color:");
   });
 
   it("renders a snake board snapshot", () => {

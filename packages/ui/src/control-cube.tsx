@@ -40,19 +40,20 @@ interface ControlCubeProps {
   facelets: string;
 }
 
-function overlayPalette(sticker: string): CSSProperties {
-  const isLightSurface = sticker === "U" || sticker === "D";
+function badgePalette(sticker: string): CSSProperties {
+  const background = mapStickerColor(sticker);
+  const darkLabel = "rgba(5, 7, 11, 0.84)";
+  const lightLabel = "rgba(255, 255, 255, 0.94)";
+  const darkShadow = "rgba(255, 255, 255, 0.22)";
+  const lightShadow = "rgba(0, 0, 0, 0.55)";
+
+  const darkContrast = contrastRatio(background, "#05070b");
+  const lightContrast = contrastRatio(background, "#ffffff");
+  const useDarkLabel = darkContrast >= lightContrast;
 
   return {
-    "--overlay-panel": isLightSurface
-      ? "rgba(0, 0, 0, 0.62)"
-      : "rgba(255, 255, 255, 0.76)",
-    "--overlay-shadow": isLightSurface
-      ? "rgba(0, 0, 0, 0.16)"
-      : "rgba(255, 255, 255, 0.12)",
-    "--overlay-text": isLightSurface
-      ? "rgba(255, 255, 255, 0.96)"
-      : "rgba(5, 7, 11, 0.94)",
+    "--face-label-color": useDarkLabel ? darkLabel : lightLabel,
+    "--face-label-shadow": useDarkLabel ? darkShadow : lightShadow,
   } as CSSProperties;
 }
 
@@ -66,7 +67,7 @@ function StickerFace({
   facelets: string;
 }) {
   const stickers = faceletsForFace(facelets, face);
-  const palette = overlayPalette(stickers[4] ?? face);
+  const palette = badgePalette(stickers[2] ?? stickers[4] ?? face);
   return (
     <div
       className={clsx("control-cube__face", `control-cube__face--${face}`)}
@@ -105,6 +106,54 @@ function StickerFace({
       ) : null}
     </div>
   );
+}
+
+function contrastRatio(background: string, foreground: string): number {
+  const backgroundLuminance = relativeLuminance(hexToRgb(background));
+  const foregroundLuminance = relativeLuminance(hexToRgb(foreground));
+  const lighter = Math.max(backgroundLuminance, foregroundLuminance);
+  const darker = Math.min(backgroundLuminance, foregroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  const value =
+    normalized.length === 3
+      ? normalized
+          .split("")
+          .map((segment) => `${segment}${segment}`)
+          .join("")
+      : normalized;
+
+  return {
+    b: Number.parseInt(value.slice(4, 6), 16),
+    g: Number.parseInt(value.slice(2, 4), 16),
+    r: Number.parseInt(value.slice(0, 2), 16),
+  };
+}
+
+function relativeLuminance({
+  b,
+  g,
+  r,
+}: {
+  b: number;
+  g: number;
+  r: number;
+}) {
+  return (
+    0.2126 * luminanceChannel(r) +
+    0.7152 * luminanceChannel(g) +
+    0.0722 * luminanceChannel(b)
+  );
+}
+
+function luminanceChannel(channel: number) {
+  const normalized = channel / 255;
+  return normalized <= 0.03928
+    ? normalized / 12.92
+    : ((normalized + 0.055) / 1.055) ** 2.4;
 }
 
 function mapStickerColor(sticker: string): string {

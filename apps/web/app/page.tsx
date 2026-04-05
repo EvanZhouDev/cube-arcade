@@ -144,7 +144,10 @@ export default function Page() {
   }
 
   return (
-    <main className="arcade-shell">
+    <main
+      className="arcade-shell"
+      style={{ "--game-accent": meta.accent } as CSSProperties}
+    >
       <header className="topbar">
         <h1 className="brand-block">CUBE ARCADE</h1>
         <button
@@ -187,10 +190,7 @@ export default function Page() {
             </div>
           </aside>
 
-          <section
-            className="cabinet"
-            style={{ "--game-accent": meta.accent } as CSSProperties}
-          >
+          <section className="cabinet">
             <div
               className={clsx("cabinet__screen", {
                 "cabinet__screen--offline": !cubeState.connected,
@@ -221,10 +221,7 @@ export default function Page() {
             </div>
           </section>
 
-          <aside
-            className="cube-sidebar"
-            style={{ "--game-accent": meta.accent } as CSSProperties}
-          >
+          <aside className="cube-sidebar">
             <div
               className={clsx("cube-sidebar__visual", {
                 "cube-sidebar__visual--offline": !cubeState.connected,
