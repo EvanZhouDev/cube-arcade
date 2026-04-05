@@ -16,7 +16,6 @@ import {
   type SmartcubeState,
   canUseBrowserBluetooth,
   connectBrowserSmartcube,
-  connectGanBrowserSmartcube,
   createSimulatorSmartcube,
 } from "@cube-arcade/smartcube";
 import { create } from "zustand";
@@ -25,7 +24,7 @@ type Session = SmartcubeSession | SmartcubeSimulatorSession;
 
 interface ArcadeStore {
   bluetoothAvailable: boolean | null;
-  connectHardware: () => Promise<void>;
+  connectHardware: (manualMacAddress?: string) => Promise<void>;
   connectGanHardware: (manualMacAddress?: string) => Promise<void>;
   connectSimulator: () => Promise<void>;
   controller: ArcadeGameController;
@@ -122,13 +121,13 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
 
   return {
     bluetoothAvailable: null,
-    async connectHardware() {
+    async connectHardware(manualMacAddress) {
       try {
         const existing = get().session;
         if (existing) {
           await existing.disconnect();
         }
-        const session = await connectBrowserSmartcube();
+        const session = await connectBrowserSmartcube(manualMacAddress);
         await attachSession(session);
       } catch (error) {
         set({
@@ -142,7 +141,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
         if (existing) {
           await existing.disconnect();
         }
-        const session = await connectGanBrowserSmartcube(manualMacAddress);
+        const session = await connectBrowserSmartcube(manualMacAddress);
         await attachSession(session);
       } catch (error) {
         set({

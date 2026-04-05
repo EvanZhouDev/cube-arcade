@@ -41,9 +41,6 @@ export default function Page() {
     (state) => state.bluetoothAvailable,
   );
   const connectHardware = useArcadeStore((state) => state.connectHardware);
-  const connectGanHardware = useArcadeStore(
-    (state) => state.connectGanHardware,
-  );
   const connectSimulator = useArcadeStore((state) => state.connectSimulator);
   const cubeState = useArcadeStore((state) => state.cubeState);
   const disconnect = useArcadeStore((state) => state.disconnect);
@@ -129,18 +126,7 @@ export default function Page() {
 
   async function handleConnectCube() {
     setNeedsMacAddress(false);
-
-    const hasManualMac = Boolean(normalizeSmartcubeMac(manualMacAddress));
-
-    if (hasManualMac) {
-      await connectGanHardware(manualMacAddress);
-    } else {
-      await connectHardware();
-
-      if (!useArcadeStore.getState().session) {
-        await connectGanHardware();
-      }
-    }
+    await connectHardware(manualMacAddress);
 
     if (useArcadeStore.getState().session) {
       setIsConnectModalOpen(false);
