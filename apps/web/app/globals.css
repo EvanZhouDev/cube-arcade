@@ -350,7 +350,9 @@ input:focus-visible {
 
 .cube-sidebar__orientation strong {
   display: block;
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
   font-size: 1.35rem;
+  letter-spacing: 0.08em;
   line-height: 1.05;
 }
 
@@ -467,6 +469,7 @@ input:focus-visible {
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   letter-spacing: 0.14em;
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .game-panel__status {
