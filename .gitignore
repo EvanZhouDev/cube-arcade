@@ -10,4 +10,4 @@ playwright-report/
 test-results/
 tmp/
 *.log
-
+*.tsbuildinfo

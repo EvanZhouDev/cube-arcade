@@ -1,16 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  typedRoutes: true,
   transpilePackages: [
     "@cube-arcade/game-engine",
     "@cube-arcade/smartcube",
     "@cube-arcade/testing",
     "@cube-arcade/ui",
   ],
-  experimental: {
-    typedRoutes: true,
-  },
 };
 
 export default nextConfig;
-
