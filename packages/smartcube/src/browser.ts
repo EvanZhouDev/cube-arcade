@@ -11,6 +11,11 @@ interface BrowserBluetooth {
   ) => Promise<BrowserBluetoothDevice>;
 }
 
+interface SmartcubeConnectionError extends Error {
+  code?: string;
+  deviceName?: string;
+}
+
 function browserBluetooth(): BrowserBluetooth {
   return (navigator as unknown as { bluetooth: BrowserBluetooth }).bluetooth;
 }
@@ -77,6 +82,25 @@ export function normalizeSmartcubeMac(value: string): string | null {
   }
 
   return hex.match(/.{1,2}/g)?.join(":") ?? null;
+}
+
+function decorateConnectionError(
+  error: unknown,
+  deviceName?: string | null,
+): SmartcubeConnectionError {
+  const resolved =
+    error instanceof Error
+      ? error
+      : new Error("Unknown smartcube connection error.");
+
+  const decorated = resolved as SmartcubeConnectionError;
+  if (deviceName) {
+    decorated.deviceName = deviceName;
+  }
+  if (resolved.message.includes("Unable to determine cube MAC address")) {
+    decorated.code = "mac_required";
+  }
+  return decorated;
 }
 
 function guidanceForConnectionError(error: unknown): Error {
@@ -183,10 +207,18 @@ export async function connectBrowserSmartcube(
     const device = await requestSmartcubeDevice();
 
     if (isGanFamilyDeviceName(device.name)) {
-      return await connectGanBrowserSmartcube(manualMacAddress, device);
+      try {
+        return await connectGanBrowserSmartcube(manualMacAddress, device);
+      } catch (error) {
+        throw decorateConnectionError(error, device.name);
+      }
     }
 
-    return await connectStandardBrowserSmartcube(device);
+    try {
+      return await connectStandardBrowserSmartcube(device);
+    } catch (error) {
+      throw decorateConnectionError(error, device.name);
+    }
   } catch (error) {
     throw guidanceForConnectionError(error);
   }

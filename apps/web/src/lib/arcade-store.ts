@@ -37,6 +37,7 @@ interface ArcadeStore {
   refreshBluetoothAvailability: () => void;
   resetGame: () => void;
   resyncCube: () => void;
+  selectedDeviceName: string | null;
   selectGame: (gameId: ArcadeGameId) => void;
   session: Session | null;
   simulateMove: (move: string) => void;
@@ -75,6 +76,18 @@ function messageFromError(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown smartcube error.";
 }
 
+function selectedDeviceNameFromError(error: unknown): string | null {
+  if (
+    error &&
+    typeof error === "object" &&
+    "deviceName" in error &&
+    typeof error.deviceName === "string"
+  ) {
+    return error.deviceName;
+  }
+  return null;
+}
+
 export const useArcadeStore = create<ArcadeStore>((set, get) => {
   function syncSnapshot(controller: ArcadeGameController) {
     set({
@@ -107,6 +120,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
       set({
         cubeState,
         error: null,
+        selectedDeviceName: cubeState.name,
         session,
       });
       if (
@@ -132,6 +146,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
       } catch (error) {
         set({
           error: messageFromError(error),
+          selectedDeviceName: selectedDeviceNameFromError(error),
         });
       }
     },
@@ -146,6 +161,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
       } catch (error) {
         set({
           error: messageFromError(error),
+          selectedDeviceName: selectedDeviceNameFromError(error),
         });
       }
     },
@@ -168,6 +184,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
       }
       set({
         cubeState: initialCubeState,
+        selectedDeviceName: null,
         session: null,
       });
     },
@@ -189,6 +206,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
       const session = get().session;
       session?.resyncToSolved();
     },
+    selectedDeviceName: null,
     selectGame(gameId) {
       const controller = createGameController(gameId, Date.now());
       set({

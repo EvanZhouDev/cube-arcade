@@ -796,7 +796,19 @@ input:focus-visible {
   background: rgba(3, 5, 9, 0.8);
 }
 
+.modal-backdrop__scrim {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
 .connect-modal {
+  position: relative;
+  z-index: 1;
   width: min(100%, 38rem);
   display: flex;
   flex-direction: column;
@@ -867,6 +879,16 @@ input:focus-visible {
   width: min(100%, 44rem);
 }
 
+.connect-modal--mac .connect-modal__hero {
+  align-items: stretch;
+  margin-top: 0.7rem;
+}
+
+.connect-modal--mac .connect-modal__primary-action {
+  width: 100%;
+  min-width: 0;
+}
+
 .hold-guide-modal {
   width: min(100%, 30rem);
 }
@@ -920,6 +942,7 @@ input:focus-visible {
 
 .connect-modal__link {
   color: var(--text);
+  cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 0.16em;
 }

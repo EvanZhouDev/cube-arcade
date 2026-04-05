@@ -26,7 +26,7 @@ const SIMULATOR_MOVES = [
   { effect: "Pause", move: "F2" },
 ] as const;
 
-const GAN_MAC_STORAGE_KEY = "cube-arcade.gan-mac-address";
+const GAN_MAC_STORAGE_KEY = "cube-arcade.gan-mac-addresses";
 const TURN_SYMBOL = {
   clockwise: "↻",
   counterclockwise: "↺",
@@ -53,6 +53,9 @@ export default function Page() {
   );
   const resetGame = useArcadeStore((state) => state.resetGame);
   const resyncCube = useArcadeStore((state) => state.resyncCube);
+  const selectedDeviceName = useArcadeStore(
+    (state) => state.selectedDeviceName,
+  );
   const selectGame = useArcadeStore((state) => state.selectGame);
   const session = useArcadeStore((state) => state.session);
   const simulateMove = useArcadeStore((state) => state.simulateMove);
@@ -70,6 +73,9 @@ export default function Page() {
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
   const [isHoldGuideOpen, setIsHoldGuideOpen] = useState(false);
   const [isMacModalOpen, setIsMacModalOpen] = useState(false);
+  const [savedMacAddresses, setSavedMacAddresses] = useState<
+    Record<string, string>
+  >({});
   const [manualMacAddress, setManualMacAddress] = useState("");
   const [showMacAddress, setShowMacAddress] = useState(false);
 
@@ -78,9 +84,14 @@ export default function Page() {
   }, [refreshBluetoothAvailability]);
 
   useEffect(() => {
-    const savedMac = window.localStorage.getItem(GAN_MAC_STORAGE_KEY);
-    if (savedMac) {
-      setManualMacAddress(savedMac);
+    const savedMacs = window.localStorage.getItem(GAN_MAC_STORAGE_KEY);
+    if (savedMacs) {
+      try {
+        const parsed = JSON.parse(savedMacs) as Record<string, string>;
+        setSavedMacAddresses(parsed);
+      } catch {
+        window.localStorage.removeItem(GAN_MAC_STORAGE_KEY);
+      }
     }
     setHasLoadedStoredMac(true);
   }, []);
@@ -90,12 +101,22 @@ export default function Page() {
       return;
     }
 
-    if (manualMacAddress) {
-      window.localStorage.setItem(GAN_MAC_STORAGE_KEY, manualMacAddress);
+    if (Object.keys(savedMacAddresses).length > 0) {
+      window.localStorage.setItem(
+        GAN_MAC_STORAGE_KEY,
+        JSON.stringify(savedMacAddresses),
+      );
     } else {
       window.localStorage.removeItem(GAN_MAC_STORAGE_KEY);
     }
-  }, [hasLoadedStoredMac, manualMacAddress]);
+  }, [hasLoadedStoredMac, savedMacAddresses]);
+
+  useEffect(() => {
+    if (!selectedDeviceName) {
+      return;
+    }
+    setManualMacAddress(savedMacAddresses[selectedDeviceName] ?? "");
+  }, [savedMacAddresses, selectedDeviceName]);
 
   useEffect(() => {
     if (cubeState.connected) {
@@ -145,6 +166,16 @@ export default function Page() {
     if (useArcadeStore.getState().session) {
       setIsMacModalOpen(false);
     }
+  }
+
+  function rememberMacAddress(value: string) {
+    if (!selectedDeviceName) {
+      return;
+    }
+    setSavedMacAddresses((current) => ({
+      ...current,
+      [selectedDeviceName]: value,
+    }));
   }
 
   return (
@@ -290,12 +321,14 @@ export default function Page() {
 
       {isMacModalOpen ? (
         <MacAddressModal
+          deviceName={selectedDeviceName}
           manualMacAddress={manualMacAddress}
           onBackdrop={() => {
             setIsMacModalOpen(false);
           }}
           onConnectCube={handleConnectCube}
           onManualMacChange={setManualMacAddress}
+          onRememberMacAddress={rememberMacAddress}
           onToggleMacAddress={() => {
             setShowMacAddress((current) => !current);
           }}
@@ -358,17 +391,21 @@ function describeAction(command: string) {
 }
 
 function MacAddressModal({
+  deviceName,
   manualMacAddress,
   onBackdrop,
   onConnectCube,
   onManualMacChange,
+  onRememberMacAddress,
   onToggleMacAddress,
   showMacAddress,
 }: {
+  deviceName: string | null;
   manualMacAddress: string;
   onBackdrop: () => void;
   onConnectCube: () => Promise<void>;
   onManualMacChange: (value: string) => void;
+  onRememberMacAddress: (value: string) => void;
   onToggleMacAddress: () => void;
   showMacAddress: boolean;
 }) {
@@ -401,10 +438,13 @@ function MacAddressModal({
             <a
               className="connect-modal__link"
               href="chrome://bluetooth-internals/#devices"
+              target="_blank"
+              rel="noreferrer"
             >
               chrome://bluetooth-internals/#devices
             </a>{" "}
-            to copy the MAC Address of your device. Then, paste it here and try
+            to copy the MAC Address of your device
+            {deviceName ? ` (${deviceName})` : ""}. Then, paste it here and try
             again.
           </p>
 
@@ -419,6 +459,7 @@ function MacAddressModal({
                   const normalized = normalizeSmartcubeMac(manualMacAddress);
                   if (normalized) {
                     onManualMacChange(normalized);
+                    onRememberMacAddress(normalized);
                   }
                 }}
                 onChange={(event) => {
