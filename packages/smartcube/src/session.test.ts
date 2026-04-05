@@ -9,8 +9,12 @@ import { SessionCore } from "./session";
 
 describe("smartcube session", () => {
   it("maps quarter turns to commands", () => {
-    expect(moveToCommand("U")).toBe("right");
-    expect(moveToCommand("U'")).toBe("left");
+    expect(moveToCommand("U")).toBe("left");
+    expect(moveToCommand("U'")).toBe("right");
+    expect(moveToCommand("R")).toBe("up");
+    expect(moveToCommand("R'")).toBe("down");
+    expect(moveToCommand("L")).toBe("down");
+    expect(moveToCommand("D")).toBe("right");
     expect(moveToCommand("F2")).toBe("pause");
   });
 

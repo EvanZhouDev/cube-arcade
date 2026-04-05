@@ -14,10 +14,10 @@ test("simulator drives the arcade flow across multiple games", async ({
   await page.getByTestId("sim-move-U").click();
 
   await expect(page.getByTestId("status-last-move")).toHaveText("U");
-  await expect(page.getByTestId("status-last-command")).toHaveText("right");
+  await expect(page.getByTestId("status-last-command")).toHaveText("left");
 
   await page.getByTestId("game-card-tetris").click();
-  await page.getByTestId("sim-move-Rprime").click();
+  await page.getByTestId("sim-move-R").click();
   await expect
     .poll(async () => {
       return page.locator(".board--tetris .board__cell--filled").count();

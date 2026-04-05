@@ -14,7 +14,7 @@ describe("arcade store", () => {
 
     const state = useArcadeStore.getState();
     expect(state.cubeState.connected).toBe(true);
-    expect(state.cubeState.lastCommand).toBe("right");
+    expect(state.cubeState.lastCommand).toBe("left");
     expect(state.cubeState.lastMove).toBe("U");
   });
 

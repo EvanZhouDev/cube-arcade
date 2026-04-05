@@ -10,10 +10,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useArcadeStore } from "../src/lib/arcade-store";
 
 const SIMULATOR_MOVES = [
-  { effect: "Right", move: "U" },
-  { effect: "Left", move: "U'" },
-  { effect: "Down", move: "R" },
-  { effect: "Up", move: "R'" },
+  { effect: "Left", move: "U" },
+  { effect: "Right", move: "U'" },
+  { effect: "Up", move: "R" },
+  { effect: "Down", move: "R'" },
   { effect: "Primary", move: "F" },
   { effect: "Secondary", move: "F'" },
   { effect: "Pause", move: "F2" },
