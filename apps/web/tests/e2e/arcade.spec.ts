@@ -5,6 +5,11 @@ test("simulator drives the arcade flow across multiple games", async ({
 }) => {
   await page.goto("/");
 
+  const macInput = page.getByTestId("cube-mac-input");
+  await macInput.fill("cc-a3-00-12-34-56");
+  await macInput.press("Tab");
+  await expect(macInput).toHaveValue("CC:A3:00:12:34:56");
+
   await page.getByRole("button", { name: "Use Simulator" }).click();
   await page.getByTestId("sim-move-U").click();
 

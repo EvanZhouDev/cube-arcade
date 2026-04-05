@@ -5,6 +5,20 @@ function isSmartcubeMove(value: string): value is SmartcubeMove {
   return /^(U|R|F|D|L|B)(2|')?$/.test(value);
 }
 
+export function normalizeSmartcubeMac(value: string): string | null {
+  const trimmed = value.trim().toUpperCase();
+  if (!trimmed) {
+    return null;
+  }
+
+  const hex = trimmed.replace(/[^0-9A-F]/g, "");
+  if (hex.length !== 12) {
+    return null;
+  }
+
+  return hex.match(/.{1,2}/g)?.join(":") ?? null;
+}
+
 function guidanceForConnectionError(error: unknown): Error {
   if (!(error instanceof Error)) {
     return new Error("Unknown smartcube connection error.");
@@ -82,7 +96,9 @@ export async function connectBrowserSmartcube(): Promise<SmartcubeSession> {
   }
 }
 
-export async function connectGanBrowserSmartcube(): Promise<SmartcubeSession> {
+export async function connectGanBrowserSmartcube(
+  manualMacAddress?: string,
+): Promise<SmartcubeSession> {
   if (typeof navigator === "undefined" || !("bluetooth" in navigator)) {
     throw new Error(
       "Web Bluetooth is unavailable in this browser. Use Chromium or the simulator.",
@@ -90,7 +106,20 @@ export async function connectGanBrowserSmartcube(): Promise<SmartcubeSession> {
   }
 
   const { connectGanCube } = await import("gan-web-bluetooth");
-  const connection = await connectGanCube();
+  const normalizedMac =
+    typeof manualMacAddress === "string"
+      ? normalizeSmartcubeMac(manualMacAddress)
+      : null;
+
+  if (manualMacAddress?.trim() && !normalizedMac) {
+    throw new Error(
+      "Enter a valid cube MAC address using 12 hex digits, for example CC:A3:00:12:34:56.",
+    );
+  }
+
+  const connection = await connectGanCube(
+    normalizedMac ? async () => normalizedMac : undefined,
+  );
   const session = new SessionCore({
     disconnectImpl: async () => {
       subscription.unsubscribe();

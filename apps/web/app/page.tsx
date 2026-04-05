@@ -1,11 +1,11 @@
 "use client";
 
 import { ARCADE_GAME_IDS } from "@cube-arcade/game-engine";
-import { getBindings } from "@cube-arcade/smartcube";
+import { getBindings, normalizeSmartcubeMac } from "@cube-arcade/smartcube";
 import { ControlCube, GameView } from "@cube-arcade/ui";
 import { useCompletion } from "ai/react";
 import { Gamepad2, RefreshCw, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useArcadeStore } from "../src/lib/arcade-store";
 
@@ -18,6 +18,8 @@ const SIMULATOR_MOVES = [
   { effect: "Secondary", move: "F'" },
   { effect: "Pause", move: "F2" },
 ] as const;
+
+const GAN_MAC_STORAGE_KEY = "cube-arcade.gan-mac-address";
 
 export default function Page() {
   const bluetoothAvailable = useArcadeStore(
@@ -52,6 +54,8 @@ export default function Page() {
 
   const animationRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number | null>(null);
+  const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
+  const [manualMacAddress, setManualMacAddress] = useState("");
 
   const {
     complete,
@@ -65,6 +69,21 @@ export default function Page() {
   useEffect(() => {
     refreshBluetoothAvailability();
   }, [refreshBluetoothAvailability]);
+
+  useEffect(() => {
+    const savedMac = window.localStorage.getItem(GAN_MAC_STORAGE_KEY);
+    if (savedMac) {
+      setManualMacAddress(savedMac);
+    }
+    setHasLoadedStoredMac(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStoredMac) {
+      return;
+    }
+    window.localStorage.setItem(GAN_MAC_STORAGE_KEY, manualMacAddress);
+  }, [hasLoadedStoredMac, manualMacAddress]);
 
   useEffect(() => {
     const frame = (timestamp: number) => {
@@ -143,7 +162,7 @@ export default function Page() {
             </button>
             <button
               className="secondary"
-              onClick={() => void connectGanHardware()}
+              onClick={() => void connectGanHardware(manualMacAddress)}
               type="button"
             >
               Connect GAN Family
@@ -167,6 +186,34 @@ export default function Page() {
             Standard path: GoCube, Rubik&apos;s Connected, GiiKER, HEYKUBE. GAN
             path: GAN, Monster Go, AiCube, and newer GAN ui models.
           </p>
+          <div className="field-stack">
+            <label className="field-label" htmlFor="cube-mac-address">
+              Cube MAC Address
+            </label>
+            <input
+              className="text-input"
+              data-testid="cube-mac-input"
+              id="cube-mac-address"
+              onBlur={() => {
+                const normalized = normalizeSmartcubeMac(manualMacAddress);
+                if (normalized) {
+                  setManualMacAddress(normalized);
+                }
+              }}
+              onChange={(event) => {
+                setManualMacAddress(event.target.value);
+              }}
+              placeholder="Optional for GAN path, e.g. CC:A3:00:12:34:56"
+              spellCheck={false}
+              type="text"
+              value={manualMacAddress}
+            />
+            <p className="field-caption">
+              Useful when the browser cannot recover the cube MAC from
+              advertisements. The GAN path accepts either
+              <code>CCA300123456</code> or <code>CC:A3:00:12:34:56</code>.
+            </p>
+          </div>
           <div className="button-row">
             <button className="secondary" onClick={resyncCube} type="button">
               <RefreshCw size={16} />

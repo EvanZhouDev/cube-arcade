@@ -16,6 +16,7 @@ export {
   canUseBrowserBluetooth,
   connectBrowserSmartcube,
   connectGanBrowserSmartcube,
+  normalizeSmartcubeMac,
 } from "./browser";
 export { SessionCore } from "./session";
 export { createSimulatorSmartcube } from "./simulator";

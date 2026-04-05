@@ -162,6 +162,43 @@ button:disabled {
   margin: 0;
 }
 
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.field-label {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.field-caption {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.field-caption code {
+  font-size: 0.82rem;
+}
+
+.text-input {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  padding: 0.85rem 1rem;
+}
+
+.text-input::placeholder {
+  color: rgba(238, 244, 255, 0.42);
+}
+
 .button-row {
   display: flex;
   gap: 0.75rem;
