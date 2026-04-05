@@ -317,10 +317,18 @@ input:focus-visible {
 
 .cabinet__overlay p {
   margin: 0;
-  color: var(--muted);
+  color: rgba(242, 246, 255, 0.82);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
+  font-size: 1rem;
+  letter-spacing: 0.22em;
+  line-height: 1.4;
+}
+
+.cabinet__overlay-button {
+  min-width: 13rem;
+  min-height: 3.5rem;
+  padding: 0.95rem 1.4rem;
+  font-size: 0.94rem;
 }
 
 .cube-sidebar__visual {
@@ -334,21 +342,6 @@ input:focus-visible {
 
 .cube-sidebar__visual--offline {
   filter: grayscale(1) brightness(0.62);
-}
-
-.cube-sidebar__overlay {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
-  padding: 0.5rem 0.7rem;
-  background: rgba(4, 6, 10, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--muted);
-  text-align: center;
-  font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.56rem;
-  letter-spacing: 0.14em;
 }
 
 .control-list__item {
@@ -385,10 +378,6 @@ input:focus-visible {
   color: var(--muted);
   font-size: 1rem;
   line-height: 1.08;
-}
-
-.cube-sidebar__connect {
-  margin-top: 0.4rem;
 }
 
 .game-view {

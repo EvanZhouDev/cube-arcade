@@ -118,9 +118,7 @@ export default function Page() {
   }, [tick]);
 
   const simulatorEnabled = Boolean(session && "simulateMove" in session);
-  const statusLabel = cubeState.connected
-    ? "CUBE CONNECTED"
-    : "NO CUBE CONNECTED";
+  const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
 
   async function handleStandardConnect() {
     await connectHardware();
@@ -188,6 +186,7 @@ export default function Page() {
                 <div className="cabinet__overlay">
                   <p>NO CUBE LINK</p>
                   <button
+                    className="cabinet__overlay-button"
                     data-testid="connect-cube-button"
                     onClick={() => {
                       setIsConnectModalOpen(true);
@@ -225,9 +224,6 @@ export default function Page() {
               })}
             >
               <ControlCube bindings={bindings} facelets={cubeState.facelets} />
-              {!cubeState.connected ? (
-                <div className="cube-sidebar__overlay">CUBE OFFLINE</div>
-              ) : null}
             </div>
 
             <div className="section-label cube-sidebar__controls-title">
@@ -254,18 +250,6 @@ export default function Page() {
                 );
               })}
             </div>
-
-            {!cubeState.connected ? (
-              <button
-                className="ghost-button cube-sidebar__connect"
-                onClick={() => {
-                  setIsConnectModalOpen(true);
-                }}
-                type="button"
-              >
-                CONNECT CUBE
-              </button>
-            ) : null}
           </aside>
         </div>
       </div>
