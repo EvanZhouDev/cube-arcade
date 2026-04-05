@@ -9,6 +9,7 @@ import {
   dispatchGameInput,
 } from "@cube-arcade/game-engine";
 import {
+  type ConnectBrowserSmartcubeOptions,
   type CubeCommand,
   SOLVED_FACELETS,
   type SmartcubeSession,
@@ -24,7 +25,7 @@ type Session = SmartcubeSession | SmartcubeSimulatorSession;
 
 interface ArcadeStore {
   bluetoothAvailable: boolean | null;
-  connectHardware: (manualMacAddress?: string) => Promise<void>;
+  connectHardware: (options?: ConnectBrowserSmartcubeOptions) => Promise<void>;
   connectGanHardware: (manualMacAddress?: string) => Promise<void>;
   connectSimulator: () => Promise<void>;
   controller: ArcadeGameController;
@@ -135,13 +136,13 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
 
   return {
     bluetoothAvailable: null,
-    async connectHardware(manualMacAddress) {
+    async connectHardware(options) {
       try {
         const existing = get().session;
         if (existing) {
           await existing.disconnect();
         }
-        const session = await connectBrowserSmartcube(manualMacAddress);
+        const session = await connectBrowserSmartcube(options);
         await attachSession(session);
       } catch (error) {
         set({
@@ -156,7 +157,9 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
         if (existing) {
           await existing.disconnect();
         }
-        const session = await connectBrowserSmartcube(manualMacAddress);
+        const session = await connectBrowserSmartcube({
+          manualMacAddress,
+        });
         await attachSession(session);
       } catch (error) {
         set({

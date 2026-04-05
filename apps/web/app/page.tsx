@@ -1,7 +1,11 @@
 "use client";
 
 import { ARCADE_GAMES } from "@cube-arcade/game-engine";
-import { getBindings, normalizeSmartcubeMac } from "@cube-arcade/smartcube";
+import {
+  clearPendingBrowserSmartcubeDevice,
+  getBindings,
+  normalizeSmartcubeMac,
+} from "@cube-arcade/smartcube";
 import { ControlCube, GameView } from "@cube-arcade/ui";
 import { clsx } from "clsx";
 import { Eye, EyeOff } from "lucide-react";
@@ -145,7 +149,10 @@ export default function Page() {
 
   async function handleConnectCube() {
     setIsMacModalOpen(false);
-    await connectHardware(manualMacAddress);
+    await connectHardware({
+      knownMacAddressesByDeviceName: savedMacAddresses,
+      manualMacAddress,
+    });
 
     if (useArcadeStore.getState().session) {
       setIsMacModalOpen(false);
@@ -324,6 +331,7 @@ export default function Page() {
           deviceName={selectedDeviceName}
           manualMacAddress={manualMacAddress}
           onBackdrop={() => {
+            clearPendingBrowserSmartcubeDevice();
             setIsMacModalOpen(false);
           }}
           onConnectCube={handleConnectCube}

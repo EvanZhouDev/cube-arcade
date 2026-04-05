@@ -13,9 +13,11 @@ export {
   SOLVED_FACELETS,
 } from "./cube-state";
 export {
+  clearPendingBrowserSmartcubeDevice,
   canUseBrowserBluetooth,
   connectBrowserSmartcube,
   connectGanBrowserSmartcube,
+  type ConnectBrowserSmartcubeOptions,
   normalizeSmartcubeMac,
 } from "./browser";
 export { SessionCore } from "./session";

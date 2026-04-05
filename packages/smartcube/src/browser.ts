@@ -16,6 +16,11 @@ interface SmartcubeConnectionError extends Error {
   deviceName?: string;
 }
 
+export interface ConnectBrowserSmartcubeOptions {
+  knownMacAddressesByDeviceName?: Record<string, string>;
+  manualMacAddress?: string;
+}
+
 function browserBluetooth(): BrowserBluetooth {
   return (navigator as unknown as { bluetooth: BrowserBluetooth }).bluetooth;
 }
@@ -56,6 +61,8 @@ const SMARTCUBE_REQUEST_OPTIONS = {
     GIIKER_SERVICE,
   ],
 } as const;
+
+let pendingSelectedDevice: BrowserBluetoothDevice | null = null;
 
 function isSmartcubeMove(value: string): value is SmartcubeMove {
   return /^(U|R|F|D|L|B)(2|')?$/.test(value);
@@ -142,6 +149,10 @@ async function requestSmartcubeDevice(): Promise<BrowserBluetoothDevice> {
   return browserBluetooth().requestDevice(SMARTCUBE_REQUEST_OPTIONS);
 }
 
+export function clearPendingBrowserSmartcubeDevice(): void {
+  pendingSelectedDevice = null;
+}
+
 async function withSelectedDevice<T>(
   device: BrowserBluetoothDevice,
   connect: () => Promise<T>,
@@ -195,7 +206,7 @@ async function connectStandardBrowserSmartcube(
 }
 
 export async function connectBrowserSmartcube(
-  manualMacAddress?: string,
+  options: ConnectBrowserSmartcubeOptions = {},
 ): Promise<SmartcubeSession> {
   if (typeof navigator === "undefined" || !("bluetooth" in navigator)) {
     throw new Error(
@@ -204,19 +215,37 @@ export async function connectBrowserSmartcube(
   }
 
   try {
-    const device = await requestSmartcubeDevice();
+    const device = pendingSelectedDevice ?? (await requestSmartcubeDevice());
+    pendingSelectedDevice = device;
 
     if (isGanFamilyDeviceName(device.name)) {
+      const rememberedMacAddress =
+        !options.manualMacAddress && device.name
+          ? (options.knownMacAddressesByDeviceName?.[device.name] ?? undefined)
+          : undefined;
+
       try {
-        return await connectGanBrowserSmartcube(manualMacAddress, device);
+        const session = await connectGanBrowserSmartcube(
+          options.manualMacAddress ?? rememberedMacAddress,
+          device,
+        );
+        clearPendingBrowserSmartcubeDevice();
+        return session;
       } catch (error) {
-        throw decorateConnectionError(error, device.name);
+        const decoratedError = decorateConnectionError(error, device.name);
+        if (decoratedError.code !== "mac_required") {
+          clearPendingBrowserSmartcubeDevice();
+        }
+        throw decoratedError;
       }
     }
 
     try {
-      return await connectStandardBrowserSmartcube(device);
+      const session = await connectStandardBrowserSmartcube(device);
+      clearPendingBrowserSmartcubeDevice();
+      return session;
     } catch (error) {
+      clearPendingBrowserSmartcubeDevice();
       throw decorateConnectionError(error, device.name);
     }
   } catch (error) {
