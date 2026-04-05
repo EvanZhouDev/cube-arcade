@@ -1,9 +1,11 @@
-import type {
-  BreakoutSnapshot,
-  CubeCommand,
-  GameController,
-  GameMeta,
-} from "../types";
+import {
+  type CubeCommand,
+  type GameController,
+  type GameMeta,
+  defineGame,
+} from "@cube-arcade/game-sdk";
+
+import type { BreakoutSnapshot } from "../types";
 
 interface Brick {
   alive: boolean;
@@ -35,7 +37,7 @@ const PADDLE_WIDTH = 2.4;
 const PADDLE_Y = 14.75;
 const MOVE_STEP = 0.8;
 
-const META: GameMeta = {
+const META: GameMeta<"breakout"> = {
   accent: "#4dd7ff",
   controls: [
     { command: "left", effect: "Move the paddle left", label: "Paddle left" },
@@ -191,31 +193,11 @@ function tickBall(state: BreakoutState, deltaMs: number): BreakoutState {
   return nextState;
 }
 
-export function createBreakoutGame(): GameController<BreakoutSnapshot> {
-  let state = createInitialState();
+export const breakoutGame = defineGame({
+  create(): GameController<BreakoutSnapshot> {
+    let state = createInitialState();
 
-  return {
-    getSnapshot() {
-      return {
-        ball: {
-          active: state.ball.active,
-          x: state.ball.x,
-          y: state.ball.y,
-        },
-        bricks: state.bricks,
-        gameOver: state.gameOver,
-        id: "breakout",
-        lives: state.lives,
-        name: META.name,
-        paddle: {
-          width: PADDLE_WIDTH,
-          x: state.paddleX,
-        },
-        score: state.score,
-        won: state.won,
-      };
-    },
-    handleCommand(command: CubeCommand) {
+    function applyCommand(command: CubeCommand) {
       if (state.gameOver || state.won) {
         if (command === "primary") {
           state = createInitialState();
@@ -255,13 +237,47 @@ export function createBreakoutGame(): GameController<BreakoutSnapshot> {
           },
         };
       }
-    },
-    meta: META,
-    reset() {
-      state = createInitialState();
-    },
-    tick(deltaMs: number) {
-      state = tickBall(state, deltaMs);
-    },
-  };
+    }
+
+    return {
+      getSnapshot() {
+        return {
+          ball: {
+            active: state.ball.active,
+            x: state.ball.x,
+            y: state.ball.y,
+          },
+          bricks: state.bricks,
+          gameOver: state.gameOver,
+          id: "breakout",
+          lives: state.lives,
+          name: META.name,
+          paddle: {
+            width: PADDLE_WIDTH,
+            x: state.paddleX,
+          },
+          score: state.score,
+          won: state.won,
+        };
+      },
+      handleCommand(command: CubeCommand) {
+        applyCommand(command);
+      },
+      handleInput({ command }) {
+        applyCommand(command);
+      },
+      meta: META,
+      reset() {
+        state = createInitialState();
+      },
+      tick(deltaMs: number) {
+        state = tickBall(state, deltaMs);
+      },
+    };
+  },
+  meta: META,
+});
+
+export function createBreakoutGame(): GameController<BreakoutSnapshot> {
+  return breakoutGame.create();
 }

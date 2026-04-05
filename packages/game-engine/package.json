@@ -12,6 +12,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "zod": "^4.1.11"
+    "@cube-arcade/game-sdk": "workspace:*"
   }
 }

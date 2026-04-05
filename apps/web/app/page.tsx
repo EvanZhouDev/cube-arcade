@@ -1,11 +1,18 @@
 "use client";
 
-import { ARCADE_GAME_IDS } from "@cube-arcade/game-engine";
+import { ARCADE_GAMES } from "@cube-arcade/game-engine";
 import { getBindings, normalizeSmartcubeMac } from "@cube-arcade/smartcube";
 import { ControlCube, GameView } from "@cube-arcade/ui";
-import { useCompletion } from "ai/react";
-import { Eye, EyeOff, Gamepad2, RefreshCw, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { clsx } from "clsx";
+import { Eye, EyeOff, RefreshCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import {
+  type CSSProperties,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useArcadeStore } from "../src/lib/arcade-store";
 
@@ -22,6 +29,9 @@ const SIMULATOR_MOVES = [
 const GAN_MAC_STORAGE_KEY = "cube-arcade.gan-mac-address";
 
 export default function Page() {
+  const searchParams = useSearchParams();
+  const isDebugMode = searchParams.get("debug") === "1";
+
   const bluetoothAvailable = useArcadeStore(
     (state) => state.bluetoothAvailable,
   );
@@ -54,18 +64,12 @@ export default function Page() {
 
   const animationRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number | null>(null);
+
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [manualMacAddress, setManualMacAddress] = useState("");
   const [showMacAddress, setShowMacAddress] = useState(false);
-
-  const {
-    complete,
-    completion,
-    error: coachError,
-    isLoading,
-  } = useCompletion({
-    api: "/api/coach",
-  });
+  const [showMacTools, setShowMacTools] = useState(false);
 
   useEffect(() => {
     refreshBluetoothAvailability();
@@ -83,8 +87,19 @@ export default function Page() {
     if (!hasLoadedStoredMac) {
       return;
     }
-    window.localStorage.setItem(GAN_MAC_STORAGE_KEY, manualMacAddress);
+
+    if (manualMacAddress) {
+      window.localStorage.setItem(GAN_MAC_STORAGE_KEY, manualMacAddress);
+    } else {
+      window.localStorage.removeItem(GAN_MAC_STORAGE_KEY);
+    }
   }, [hasLoadedStoredMac, manualMacAddress]);
+
+  useEffect(() => {
+    if (cubeState.connected) {
+      setIsConnectModalOpen(false);
+    }
+  }, [cubeState.connected]);
 
   useEffect(() => {
     const frame = (timestamp: number) => {
@@ -102,344 +117,482 @@ export default function Page() {
     };
   }, [tick]);
 
-  const coachPayload = useMemo(
-    () =>
-      JSON.stringify({
-        controls: bindings.map((binding) => ({
-          effect:
-            meta.controls.find((control) => control.command === binding.command)
-              ?.effect ?? binding.description,
-          move: binding.move,
-        })),
-        game: meta.name,
-        lastMove: cubeState.lastMove,
-        lastScore: snapshot.score,
-        mode: cubeState.mode,
-      }),
-    [
-      bindings,
-      cubeState.lastMove,
-      cubeState.mode,
-      meta.controls,
-      meta.name,
-      snapshot.score,
-    ],
-  );
+  const simulatorEnabled = Boolean(session && "simulateMove" in session);
+  const statusLabel = cubeState.connected
+    ? "CUBE CONNECTED"
+    : "NO CUBE CONNECTED";
+  const screenStatus = cubeState.connected
+    ? paused
+      ? "INPUT PAUSED"
+      : snapshot.gameOver
+        ? "GAME OVER"
+        : snapshot.won
+          ? "RUN CLEARED"
+          : "LIVE SIGNAL"
+    : "NO SIGNAL";
+
+  async function handleStandardConnect() {
+    await connectHardware();
+    if (useArcadeStore.getState().session) {
+      setIsConnectModalOpen(false);
+    }
+  }
+
+  async function handleGanConnect() {
+    await connectGanHardware(manualMacAddress);
+    if (useArcadeStore.getState().session) {
+      setIsConnectModalOpen(false);
+    }
+  }
+
+  async function handleSimulatorConnect() {
+    await connectSimulator();
+    if (useArcadeStore.getState().session) {
+      setIsConnectModalOpen(false);
+    }
+  }
 
   return (
-    <main className="app-shell">
-      <section className="hero">
-        <div>
-          <p className="hero__eyebrow">Smartcube-first online arcade</p>
-          <h1>Cube Arcade</h1>
-          <p className="hero__copy">
-            Connect a smartcube, keep white on top with green facing you, and
-            turn physical faces to drive classic arcade games.
-          </p>
+    <main className="arcade-shell">
+      <header className="topbar pixel-panel">
+        <div className="brand-block">
+          <p className="brand-block__eyebrow">SMARTCUBE PIXEL ARCADE</p>
+          <h1>CUBE ARCADE</h1>
         </div>
-        <div className="hero__stats">
-          <span>{cubeState.connected ? cubeState.name : "Disconnected"}</span>
-          <span>{paused ? "Paused" : "Live"}</span>
-          <span>{snapshot.name}</span>
+        <div className="topbar__readouts">
+          <div className="readout-box">
+            <span>GAME</span>
+            <strong>{meta.name.toUpperCase()}</strong>
+          </div>
+          <div className="readout-box">
+            <span>SCORE</span>
+            <strong>{snapshot.score}</strong>
+          </div>
+          <button
+            className={clsx("status-button", {
+              "status-button--connected": cubeState.connected,
+            })}
+            data-testid="status-button"
+            onClick={() => {
+              setIsConnectModalOpen(true);
+            }}
+            type="button"
+          >
+            <span
+              className={clsx("status-button__light", {
+                "status-button__light--connected": cubeState.connected,
+              })}
+            />
+            <span>{statusLabel}</span>
+          </button>
         </div>
-      </section>
+      </header>
 
-      <section className="dashboard">
-        <aside className="panel stack">
-          <div className="panel__header">
-            <h2>Connect</h2>
-            <button className="ghost-button" onClick={disconnect} type="button">
-              Disconnect
-            </button>
-          </div>
-          <p className="panel__copy">
-            Hardware flow: choose the connect path that matches your cube,
-            approve the browser Bluetooth chooser, pick your device, then keep
-            the cube oriented with white on top and green facing you.
-          </p>
-          <div className="button-row">
-            <button onClick={() => void connectHardware()} type="button">
-              Connect Standard Smartcube
-            </button>
-            <button
-              className="secondary"
-              onClick={() => void connectGanHardware(manualMacAddress)}
-              type="button"
-            >
-              Connect GAN Family
-            </button>
-            <button
-              className="secondary"
-              onClick={() => void connectSimulator()}
-              type="button"
-            >
-              Use Simulator
-            </button>
-          </div>
-          {bluetoothAvailable === false ? (
-            <p className="panel__warning">
-              Web Bluetooth is unavailable in this browser. Use a Chromium build
-              or the simulator.
-            </p>
-          ) : null}
-          {error ? <p className="panel__warning">{error}</p> : null}
-          <p className="panel__copy">
-            Standard path: GoCube, Rubik&apos;s Connected, GiiKER, HEYKUBE. GAN
-            path: GAN, Monster Go, AiCube, and newer GAN ui models.
-          </p>
-          <div className="field-stack">
-            <label className="field-label" htmlFor="cube-mac-address">
-              Cube MAC Address
-            </label>
-            <div className="input-with-action">
-              <input
-                autoComplete="off"
-                className="text-input"
-                data-testid="cube-mac-input"
-                id="cube-mac-address"
-                onBlur={() => {
-                  const normalized = normalizeSmartcubeMac(manualMacAddress);
-                  if (normalized) {
-                    setManualMacAddress(normalized);
-                  }
-                }}
-                onChange={(event) => {
-                  setManualMacAddress(event.target.value);
-                }}
-                placeholder="Optional for GAN path, e.g. CC:A3:00:12:34:56"
-                spellCheck={false}
-                type={showMacAddress ? "text" : "password"}
-                value={manualMacAddress}
-              />
+      <div className="arcade-layout">
+        <aside className="pixel-panel game-sidebar">
+          <div className="section-label">SELECT GAME</div>
+          <div className="game-sidebar__list">
+            {ARCADE_GAMES.map((game) => (
               <button
-                aria-label={
-                  showMacAddress ? "Hide MAC address" : "Show MAC address"
-                }
-                className="ghost-button input-with-action__button"
-                data-testid="cube-mac-toggle"
-                onClick={() => {
-                  setShowMacAddress((current) => !current);
-                }}
+                className={clsx("game-sidebar__item", {
+                  "game-sidebar__item--active": game.meta.id === gameId,
+                })}
+                data-testid={`game-card-${game.meta.id}`}
+                key={game.meta.id}
+                onClick={() => selectGame(game.meta.id)}
+                style={{ "--game-accent": game.meta.accent } as CSSProperties}
                 type="button"
               >
-                {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
-                {showMacAddress ? "Hide" : "Show"}
-              </button>
-            </div>
-            <p className="field-caption">
-              Useful when the browser cannot recover the cube MAC from
-              advertisements. The GAN path accepts either
-              <code>CCA300123456</code> or <code>CC:A3:00:12:34:56</code>.
-            </p>
-          </div>
-          <div className="button-row">
-            <button className="secondary" onClick={resyncCube} type="button">
-              <RefreshCw size={16} />
-              Resync To Solved
-            </button>
-            <button className="secondary" onClick={resetGame} type="button">
-              Reset Game
-            </button>
-          </div>
-          <div className="status-grid">
-            <div>
-              <span className="status-grid__label">Last turn</span>
-              <strong data-testid="status-last-move">
-                {cubeState.lastMove ?? "None yet"}
-              </strong>
-            </div>
-            <div>
-              <span className="status-grid__label">Translated input</span>
-              <strong data-testid="status-last-command">
-                {cubeState.lastCommand ?? "Waiting"}
-              </strong>
-            </div>
-            <div>
-              <span className="status-grid__label">Move history</span>
-              <strong>
-                {cubeState.moveHistory.slice(-6).join(" ") || "Empty"}
-              </strong>
-            </div>
-          </div>
-          <SimulatorDeck
-            enabled={Boolean(session && "simulateMove" in session)}
-            onMove={simulateMove}
-          />
-        </aside>
-
-        <section className="panel panel--wide stack">
-          <div className="panel__header">
-            <div>
-              <h2>Games</h2>
-              <p className="panel__copy">{meta.description}</p>
-            </div>
-            <span className="pill">
-              <Gamepad2 size={16} />
-              Score {snapshot.score}
-            </span>
-          </div>
-          <div className="game-picker">
-            {ARCADE_GAME_IDS.map((id) => (
-              <button
-                className={
-                  id === gameId ? "game-card game-card--active" : "game-card"
-                }
-                data-testid={`game-card-${id}`}
-                key={id}
-                onClick={() => selectGame(id)}
-                type="button"
-              >
-                <strong>{prettyGameName(id)}</strong>
-                <span>{gameTagline(id)}</span>
+                <strong>{game.meta.name}</strong>
+                <span>{game.meta.tagline}</span>
               </button>
             ))}
           </div>
-          <div className="arcade-stage">
-            <div data-testid="game-surface">
+          <div className="sidebar-note">
+            <span>ORIENTATION</span>
+            <strong>WHITE TOP / GREEN FRONT</strong>
+          </div>
+        </aside>
+
+        <section
+          className="pixel-panel cabinet"
+          style={{ "--game-accent": meta.accent } as CSSProperties}
+        >
+          <div className="cabinet__header">
+            <div>
+              <div className="section-label">CURRENT CABINET</div>
+              <h2>{meta.name}</h2>
+              <p>{meta.description}</p>
+            </div>
+            <button
+              className="ghost-button cabinet__reset"
+              onClick={resetGame}
+              type="button"
+            >
+              RESET RUN
+            </button>
+          </div>
+
+          <div
+            className={clsx("cabinet__screen", {
+              "cabinet__screen--offline": !cubeState.connected,
+            })}
+          >
+            <div className="cabinet__statusline">
+              <span>{screenStatus}</span>
+              <span>
+                {cubeState.connected
+                  ? "TURN THE CUBE TO PLAY"
+                  : "PRESS CONNECT TO START"}
+              </span>
+            </div>
+            <div className="cabinet__viewport" data-testid="game-surface">
               <GameView snapshot={snapshot} />
             </div>
-            <div className="arcade-stage__footer">
-              <span>
-                {snapshot.gameOver
-                  ? "Game over"
-                  : snapshot.won
-                    ? "You won"
-                    : "Running"}
-              </span>
-              <span>{paused ? "Ticker paused" : "Ticker active"}</span>
-            </div>
+            {!cubeState.connected ? (
+              <div className="cabinet__overlay">
+                <p>NO CUBE LINK</p>
+                <button
+                  data-testid="connect-cube-button"
+                  onClick={() => {
+                    setIsConnectModalOpen(true);
+                  }}
+                  type="button"
+                >
+                  CONNECT CUBE
+                </button>
+              </div>
+            ) : null}
           </div>
         </section>
 
-        <aside className="panel stack">
-          <div className="panel__header">
+        <aside className="pixel-panel cube-sidebar">
+          <div className="section-label">CONTROL CUBE</div>
+          <div
+            className={clsx("cube-sidebar__visual", {
+              "cube-sidebar__visual--offline": !cubeState.connected,
+            })}
+          >
+            <ControlCube bindings={bindings} facelets={cubeState.facelets} />
+            {!cubeState.connected ? (
+              <div className="cube-sidebar__overlay">CUBE OFFLINE</div>
+            ) : null}
+          </div>
+
+          <div className="signal-strip">
             <div>
-              <h2>Control Guide</h2>
-              <p className="panel__copy">
-                The virtual cube mirrors every accepted turn. Use quarter turns
-                for clean inputs and keep the visible guide orientation stable.
-              </p>
+              <span>LAST TURN</span>
+              <strong data-testid="status-last-move">
+                {cubeState.lastMove ?? "NONE"}
+              </strong>
+            </div>
+            <div>
+              <span>INPUT</span>
+              <strong data-testid="status-last-command">
+                {cubeState.lastCommand ?? "WAITING"}
+              </strong>
             </div>
           </div>
-          <ControlCube bindings={bindings} facelets={cubeState.facelets} />
-          <div className="hint-list">
+
+          <div className="control-list">
             {bindings.map((binding) => {
               const gameControl = meta.controls.find(
                 (control) => control.command === binding.command,
               );
               return (
-                <div className="hint-list__item" key={binding.move}>
+                <div className="control-list__item" key={binding.move}>
                   <div
-                    className="hint-list__swatch"
+                    className="control-list__swatch"
                     style={{ backgroundColor: binding.faceColor }}
                   />
                   <div>
                     <strong>{gameControl?.label ?? binding.command}</strong>
                     <p>
-                      {binding.move} on the {binding.faceLabel.toLowerCase()}{" "}
-                      face. {gameControl?.effect ?? binding.description}
+                      {binding.move} on {binding.faceLabel.toUpperCase()}
                     </p>
                   </div>
                 </div>
               );
             })}
           </div>
-        </aside>
 
-        <section className="panel panel--wide stack">
-          <div className="panel__header">
-            <div>
-              <h2>AI Coach</h2>
-              <p className="panel__copy">
-                Uses the Vercel AI SDK route. Without an API key, it falls back
-                to a deterministic local coach message.
-              </p>
-            </div>
+          {!cubeState.connected ? (
             <button
-              className="secondary"
-              onClick={() => complete(coachPayload)}
+              className="ghost-button cube-sidebar__connect"
+              onClick={() => {
+                setIsConnectModalOpen(true);
+              }}
               type="button"
             >
-              <Sparkles size={16} />
-              Generate Briefing
+              CONNECT CUBE
             </button>
-          </div>
-          <div className="coach-output">
-            {isLoading
-              ? "Streaming coach response..."
-              : completion || "No coaching text yet."}
-          </div>
-          {coachError ? (
-            <p className="panel__warning">{coachError.message}</p>
           ) : null}
-        </section>
-      </section>
+        </aside>
+      </div>
+
+      {isDebugMode ? (
+        <DebugSimulatorDock
+          enabled={simulatorEnabled}
+          onMove={simulateMove}
+          onOpenConnect={() => {
+            setIsConnectModalOpen(true);
+          }}
+        />
+      ) : null}
+
+      {isConnectModalOpen ? (
+        <ConnectModal
+          bluetoothAvailable={bluetoothAvailable}
+          connected={cubeState.connected}
+          cubeName={cubeState.name}
+          error={error}
+          isDebugMode={isDebugMode}
+          manualMacAddress={manualMacAddress}
+          onBackdrop={() => {
+            setIsConnectModalOpen(false);
+          }}
+          onConnectGan={handleGanConnect}
+          onConnectSimulator={handleSimulatorConnect}
+          onConnectStandard={handleStandardConnect}
+          onDisconnect={disconnect}
+          onManualMacChange={setManualMacAddress}
+          onResync={resyncCube}
+          onToggleMacAddress={() => {
+            setShowMacAddress((current) => !current);
+          }}
+          onToggleMacTools={() => {
+            setShowMacTools((current) => !current);
+          }}
+          showMacAddress={showMacAddress}
+          showMacTools={showMacTools}
+        />
+      ) : null}
     </main>
   );
 }
 
-function prettyGameName(id: string): string {
-  switch (id) {
-    case "2048":
-      return "2048";
-    case "breakout":
-      return "Breakout";
-    case "snake":
-      return "Snake";
-    case "tetris":
-      return "Tetris";
-    default:
-      return id;
-  }
+function ConnectModal({
+  bluetoothAvailable,
+  connected,
+  cubeName,
+  error,
+  isDebugMode,
+  manualMacAddress,
+  onBackdrop,
+  onConnectGan,
+  onConnectSimulator,
+  onConnectStandard,
+  onDisconnect,
+  onManualMacChange,
+  onResync,
+  onToggleMacAddress,
+  onToggleMacTools,
+  showMacAddress,
+  showMacTools,
+}: {
+  bluetoothAvailable: boolean | null;
+  connected: boolean;
+  cubeName: string;
+  error: string | null;
+  isDebugMode: boolean;
+  manualMacAddress: string;
+  onBackdrop: () => void;
+  onConnectGan: () => Promise<void>;
+  onConnectSimulator: () => Promise<void>;
+  onConnectStandard: () => Promise<void>;
+  onDisconnect: () => Promise<void>;
+  onManualMacChange: (value: string) => void;
+  onResync: () => void;
+  onToggleMacAddress: () => void;
+  onToggleMacTools: () => void;
+  showMacAddress: boolean;
+  showMacTools: boolean;
+}) {
+  return (
+    <dialog
+      className="modal-backdrop"
+      data-testid="connect-modal"
+      onCancel={(event) => {
+        event.preventDefault();
+        onBackdrop();
+      }}
+      open
+    >
+      <button
+        aria-label="Close connect modal"
+        className="modal-backdrop__scrim"
+        onClick={onBackdrop}
+        type="button"
+      />
+      <section className="pixel-panel connect-modal">
+        <div className="connect-modal__header">
+          <div>
+            <div className="section-label">CUBE LINK</div>
+            <h2>{connected ? "CONNECTED" : "CONNECT YOUR CUBE"}</h2>
+          </div>
+          <button className="ghost-button" onClick={onBackdrop} type="button">
+            CLOSE
+          </button>
+        </div>
+
+        {connected ? (
+          <div className="connect-modal__panel">
+            <p className="connect-modal__lede">
+              Active link: <strong>{cubeName}</strong>
+            </p>
+            <div className="connect-modal__actions">
+              <button className="ghost-button" onClick={onResync} type="button">
+                <RefreshCw size={16} />
+                RESYNC TO SOLVED
+              </button>
+              <button
+                className="ghost-button"
+                onClick={onDisconnect}
+                type="button"
+              >
+                DISCONNECT
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="connect-modal__panel">
+            <p className="connect-modal__lede">
+              Choose the hardware path that matches your cube. The browser will
+              open the Bluetooth chooser.
+            </p>
+            <div className="connect-modal__actions">
+              <button
+                data-testid="connect-standard-button"
+                onClick={() => void onConnectStandard()}
+                type="button"
+              >
+                CONNECT STANDARD
+              </button>
+              <button
+                className="ghost-button"
+                data-testid="connect-gan-button"
+                onClick={() => void onConnectGan()}
+                type="button"
+              >
+                CONNECT GAN FAMILY
+              </button>
+            </div>
+            {isDebugMode ? (
+              <div className="connect-modal__debug">
+                <span>DEBUG</span>
+                <button
+                  className="ghost-button"
+                  data-testid="connect-simulator-button"
+                  onClick={() => void onConnectSimulator()}
+                  type="button"
+                >
+                  USE SIMULATOR
+                </button>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        <div className="connect-modal__panel">
+          <button
+            className="ghost-button connect-modal__advanced-toggle"
+            data-testid="advanced-toggle"
+            onClick={onToggleMacTools}
+            type="button"
+          >
+            {showMacTools ? "HIDE ADVANCED" : "SHOW ADVANCED"}
+          </button>
+
+          {showMacTools ? (
+            <div className="field-stack">
+              <label className="field-label" htmlFor="cube-mac-address">
+                MANUAL GAN MAC
+              </label>
+              <div className="input-with-action">
+                <input
+                  autoComplete="off"
+                  className="text-input"
+                  data-testid="cube-mac-input"
+                  id="cube-mac-address"
+                  onBlur={() => {
+                    const normalized = normalizeSmartcubeMac(manualMacAddress);
+                    if (normalized) {
+                      onManualMacChange(normalized);
+                    }
+                  }}
+                  onChange={(event) => {
+                    onManualMacChange(event.target.value);
+                  }}
+                  placeholder="CC:A3:00:12:34:56"
+                  spellCheck={false}
+                  type={showMacAddress ? "text" : "password"}
+                  value={manualMacAddress}
+                />
+                <button
+                  aria-label={
+                    showMacAddress ? "Hide MAC address" : "Show MAC address"
+                  }
+                  className="ghost-button input-with-action__button"
+                  data-testid="cube-mac-toggle"
+                  onClick={onToggleMacAddress}
+                  type="button"
+                >
+                  {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showMacAddress ? "HIDE" : "SHOW"}
+                </button>
+              </div>
+              <p className="field-caption">
+                Only needed when the browser cannot recover your GAN-family MAC
+                from advertisements.
+              </p>
+            </div>
+          ) : null}
+
+          {bluetoothAvailable === false ? (
+            <p className="panel__warning">
+              WEB BLUETOOTH IS UNAVAILABLE IN THIS BROWSER. USE CHROMIUM OR
+              DEBUG SIMULATOR.
+            </p>
+          ) : null}
+          {error ? <p className="panel__warning">{error}</p> : null}
+        </div>
+      </section>
+    </dialog>
+  );
 }
 
-function gameTagline(id: string): string {
-  switch (id) {
-    case "2048":
-      return "Directional swipes via white and red turns.";
-    case "breakout":
-      return "Launch and guide the paddle with cube twists.";
-    case "snake":
-      return "Four-direction movement mapped straight to cube faces.";
-    case "tetris":
-      return "A full move set including both rotations and hard drop.";
-    default:
-      return "";
-  }
-}
-
-function SimulatorDeck({
+function DebugSimulatorDock({
   enabled,
   onMove,
+  onOpenConnect,
 }: {
   enabled: boolean;
   onMove: (move: string) => void;
+  onOpenConnect: () => void;
 }) {
   return (
-    <div className="simulator-deck">
-      <div className="panel__header">
-        <h3>Simulator</h3>
-        <span className="pill">{enabled ? "Ready" : "Enable simulator"}</span>
-      </div>
-      <p className="panel__copy">
-        Use these scripted turns for manual testing, demos, and Playwright E2E
-        coverage.
-      </p>
-      <div className="simulator-deck__buttons">
-        {SIMULATOR_MOVES.map((entry) => (
-          <button
-            className="secondary"
-            disabled={!enabled}
-            key={entry.move}
-            data-testid={`sim-move-${entry.move.replace("'", "prime")}`}
-            onClick={() => onMove(entry.move)}
-            type="button"
-          >
-            {entry.move}
-            <span>{entry.effect}</span>
-          </button>
-        ))}
-      </div>
-    </div>
+    <section className="debug-dock">
+      <div className="debug-dock__label">DEBUG SIM</div>
+      {!enabled ? (
+        <button className="ghost-button" onClick={onOpenConnect} type="button">
+          OPEN CONNECT PANEL
+        </button>
+      ) : (
+        <div className="debug-dock__buttons">
+          {SIMULATOR_MOVES.map((entry) => (
+            <button
+              className="ghost-button"
+              data-testid={`sim-move-${entry.move.replace("'", "prime")}`}
+              key={entry.move}
+              onClick={() => onMove(entry.move)}
+              type="button"
+            >
+              <span>{entry.move}</span>
+              <span>{entry.effect}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

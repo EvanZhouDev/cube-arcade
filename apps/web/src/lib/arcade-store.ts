@@ -1,11 +1,12 @@
 "use client";
 
 import {
+  type ArcadeGameController,
   type ArcadeGameId,
   type ArcadeSnapshot,
-  type GameController,
   type GameMeta,
   createGameController,
+  dispatchGameInput,
 } from "@cube-arcade/game-engine";
 import {
   type CubeCommand,
@@ -27,7 +28,7 @@ interface ArcadeStore {
   connectHardware: () => Promise<void>;
   connectGanHardware: (manualMacAddress?: string) => Promise<void>;
   connectSimulator: () => Promise<void>;
-  controller: GameController;
+  controller: ArcadeGameController;
   cubeState: SmartcubeState;
   disconnect: () => Promise<void>;
   error: string | null;
@@ -76,14 +77,14 @@ function messageFromError(error: unknown): string {
 }
 
 export const useArcadeStore = create<ArcadeStore>((set, get) => {
-  function syncSnapshot(controller: GameController) {
+  function syncSnapshot(controller: ArcadeGameController) {
     set({
       meta: controller.meta,
-      snapshot: controller.getSnapshot(),
+      snapshot: controller.getSnapshot() as ArcadeSnapshot,
     });
   }
 
-  function dispatchCommand(command: CubeCommand) {
+  function dispatchCommand(command: CubeCommand, cubeState: SmartcubeState) {
     if (command === "pause") {
       set((state) => ({
         paused: !state.paused,
@@ -91,7 +92,12 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
       return;
     }
     const controller = get().controller;
-    controller.handleCommand(command);
+    dispatchGameInput(controller, {
+      command,
+      cube: cubeState,
+      receivedAt: cubeState.lastEventAt ?? Date.now(),
+      sourceMove: cubeState.lastMove,
+    });
     syncSnapshot(controller);
   }
 
@@ -109,7 +115,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
         cubeState.lastEventAt !== lastEventAt &&
         cubeState.lastCommand
       ) {
-        dispatchCommand(cubeState.lastCommand);
+        dispatchCommand(cubeState.lastCommand, cubeState);
       }
     });
   }
@@ -204,7 +210,7 @@ export const useArcadeStore = create<ArcadeStore>((set, get) => {
     },
     snapshot: initialController.getSnapshot(),
     tick(deltaMs) {
-      if (get().paused) {
+      if (get().paused || !get().cubeState.connected) {
         return;
       }
       const controller = get().controller;

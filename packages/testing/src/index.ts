@@ -2,6 +2,7 @@ import {
   type ArcadeGameId,
   type ArcadeSnapshot,
   createGameController,
+  dispatchGameInput,
 } from "@cube-arcade/game-engine";
 import {
   type SmartcubeMove,
@@ -20,7 +21,12 @@ export function createSimulatorHarness(gameId: ArcadeGameId, seed = 101) {
     if (cubeState.lastEventAt && cubeState.lastEventAt !== lastEventAt) {
       lastEventAt = cubeState.lastEventAt;
       if (cubeState.lastCommand) {
-        controller.handleCommand(cubeState.lastCommand);
+        dispatchGameInput(controller, {
+          command: cubeState.lastCommand,
+          cube: cubeState,
+          receivedAt: cubeState.lastEventAt,
+          sourceMove: cubeState.lastMove,
+        });
       }
     }
   });

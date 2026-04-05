@@ -1,20 +1,45 @@
-export { create2048Game } from "./games/game2048";
-export { createBreakoutGame } from "./games/breakout";
-export { createSnakeGame } from "./games/snake";
-export { createTetrisGame } from "./games/tetris";
 export {
+  createGameRegistry,
+  defineGame,
+  dispatchGameInput,
+  isDirectionalCommand,
+} from "@cube-arcade/game-sdk";
+export type {
+  BaseGameSnapshot,
+  CubeCommand,
+  CubeFeatures,
+  CubeMode,
+  CubeMove,
+  CubeState,
+  DirectionalCubeCommand,
+  FaceName,
+  GameControlHint,
+  GameController,
+  GameDefinition,
+  GameInput,
+  GameMeta,
+  GameSnapshotBase,
+  Quaternion,
+} from "@cube-arcade/game-sdk";
+export { breakoutGame, createBreakoutGame } from "./games/breakout";
+export { create2048Game, game2048 } from "./games/game2048";
+export { createSnakeGame, snakeGame } from "./games/snake";
+export { createTetrisGame, tetrisGame } from "./games/tetris";
+export {
+  ARCADE_GAMES,
   ARCADE_GAME_IDS,
   assertGameId,
   createGameController,
+  getArcadeGameDefinition,
 } from "./registry";
 export type {
+  ArcadeGameController,
+  ArcadeGameDefinition,
   ArcadeGameId,
+  ArcadeGameMeta,
   ArcadeSnapshot,
   BreakoutSnapshot,
   Game2048Snapshot,
-  GameControlHint,
-  GameController,
-  GameMeta,
   SnakeSnapshot,
   TetrisSnapshot,
 } from "./types";

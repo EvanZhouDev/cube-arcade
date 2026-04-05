@@ -1,10 +1,12 @@
+import {
+  type GameController,
+  type GameMeta,
+  defineGame,
+  isDirectionalCommand,
+} from "@cube-arcade/game-sdk";
+
 import { randomIndex } from "../random";
-import type {
-  CubeCommand,
-  GameController,
-  GameMeta,
-  SnakeSnapshot,
-} from "../types";
+import type { SnakeSnapshot } from "../types";
 
 interface Point {
   x: number;
@@ -28,7 +30,7 @@ const WIDTH = 14;
 const HEIGHT = 14;
 const STEP_MS = 150;
 
-const META: GameMeta = {
+const META: GameMeta<"snake"> = {
   accent: "#57d163",
   controls: [
     { command: "left", effect: "Steer left", label: "Left" },
@@ -183,58 +185,73 @@ function renderGrid(state: SnakeState): SnakeSnapshot["grid"] {
   return grid;
 }
 
-export function createSnakeGame(seed?: number): GameController<SnakeSnapshot> {
-  let state = createInitialState(seed);
+export const snakeGame = defineGame({
+  create(seed?: number): GameController<SnakeSnapshot> {
+    let state = createInitialState(seed);
 
-  return {
-    getSnapshot() {
-      return {
-        food: state.food,
-        gameOver: state.gameOver,
-        grid: renderGrid(state),
-        id: "snake",
-        moveBudgetMs: STEP_MS,
-        name: META.name,
-        score: state.score,
-        won: state.won,
-      };
-    },
-    handleCommand(command: CubeCommand) {
-      const nextDirection =
-        command === "left" ||
-        command === "right" ||
-        command === "up" ||
-        command === "down"
-          ? command
-          : null;
-      if (!nextDirection || isOpposite(state.direction, nextDirection)) {
-        return;
-      }
-      state = {
-        ...state,
-        direction: nextDirection,
-      };
-    },
-    meta: META,
-    reset(nextSeed?: number) {
-      state = createInitialState(nextSeed);
-    },
-    tick(deltaMs: number) {
-      if (state.gameOver || state.won) {
-        return;
-      }
-      let accumulatorMs = state.accumulatorMs + deltaMs;
-      while (accumulatorMs >= STEP_MS) {
-        accumulatorMs -= STEP_MS;
-        state = applyStep({
+    return {
+      getSnapshot() {
+        return {
+          food: state.food,
+          gameOver: state.gameOver,
+          grid: renderGrid(state),
+          id: "snake",
+          moveBudgetMs: STEP_MS,
+          name: META.name,
+          score: state.score,
+          won: state.won,
+        };
+      },
+      handleCommand(command) {
+        if (
+          !isDirectionalCommand(command) ||
+          isOpposite(state.direction, command)
+        ) {
+          return;
+        }
+        state = {
+          ...state,
+          direction: command,
+        };
+      },
+      handleInput({ command }) {
+        if (
+          !isDirectionalCommand(command) ||
+          isOpposite(state.direction, command)
+        ) {
+          return;
+        }
+        state = {
+          ...state,
+          direction: command,
+        };
+      },
+      meta: META,
+      reset(nextSeed?: number) {
+        state = createInitialState(nextSeed);
+      },
+      tick(deltaMs: number) {
+        if (state.gameOver || state.won) {
+          return;
+        }
+        let accumulatorMs = state.accumulatorMs + deltaMs;
+        while (accumulatorMs >= STEP_MS) {
+          accumulatorMs -= STEP_MS;
+          state = applyStep({
+            ...state,
+            accumulatorMs,
+          });
+        }
+        state = {
           ...state,
           accumulatorMs,
-        });
-      }
-      state = {
-        ...state,
-        accumulatorMs,
-      };
-    },
-  };
+        };
+      },
+    };
+  },
+  meta: META,
+});
+
+export function createSnakeGame(seed?: number): GameController<SnakeSnapshot> {
+  return snakeGame.create(seed);
 }

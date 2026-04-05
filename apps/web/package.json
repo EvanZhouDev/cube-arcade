@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.24",
+    "@cube-arcade/game-sdk": "workspace:*",
     "@cube-arcade/game-engine": "workspace:*",
     "@cube-arcade/smartcube": "workspace:*",
     "@cube-arcade/ui": "workspace:*",

@@ -1,5 +1,5 @@
 {
-  "name": "@cube-arcade/smartcube",
+  "name": "@cube-arcade/game-sdk",
   "version": "0.0.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -10,11 +10,5 @@
     "lint": "biome check src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
-  },
-  "dependencies": {
-    "@cube-arcade/game-sdk": "workspace:*",
-    "cubing": "^0.57.4",
-    "gan-web-bluetooth": "^3.0.2",
-    "zod": "^4.1.11"
   }
 }

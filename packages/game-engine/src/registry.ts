@@ -1,31 +1,46 @@
-import { z } from "zod";
+import { createGameRegistry } from "@cube-arcade/game-sdk";
 
-import { createBreakoutGame } from "./games/breakout";
-import { create2048Game } from "./games/game2048";
-import { createSnakeGame } from "./games/snake";
-import { createTetrisGame } from "./games/tetris";
-import type { ArcadeGameId, GameController } from "./types";
+import { breakoutGame } from "./games/breakout";
+import { game2048 } from "./games/game2048";
+import { snakeGame } from "./games/snake";
+import { tetrisGame } from "./games/tetris";
+import type {
+  ArcadeGameController,
+  ArcadeGameDefinition,
+  ArcadeGameId,
+} from "./types";
 
-const gameIdSchema = z.enum(["snake", "2048", "tetris", "breakout"]);
+const arcadeGameDefinitions = {
+  "2048": game2048,
+  breakout: breakoutGame,
+  snake: snakeGame,
+  tetris: tetrisGame,
+} as const satisfies Record<ArcadeGameId, ArcadeGameDefinition>;
 
-export const ARCADE_GAME_IDS = gameIdSchema.options;
+const arcadeGameRegistry = createGameRegistry(arcadeGameDefinitions);
+
+export const ARCADE_GAMES = [
+  snakeGame,
+  game2048,
+  tetrisGame,
+  breakoutGame,
+] as const satisfies readonly ArcadeGameDefinition[];
+
+export const ARCADE_GAME_IDS = arcadeGameRegistry.ids;
 
 export function createGameController(
   id: ArcadeGameId,
   seed?: number,
-): GameController {
-  switch (id) {
-    case "2048":
-      return create2048Game(seed);
-    case "breakout":
-      return createBreakoutGame();
-    case "snake":
-      return createSnakeGame(seed);
-    case "tetris":
-      return createTetrisGame(seed);
-  }
+): ArcadeGameController {
+  return arcadeGameRegistry.create(id, seed) as ArcadeGameController;
+}
+
+export function getArcadeGameDefinition(
+  id: ArcadeGameId,
+): ArcadeGameDefinition {
+  return arcadeGameRegistry.getDefinition(id) as ArcadeGameDefinition;
 }
 
 export function assertGameId(value: string): ArcadeGameId {
-  return gameIdSchema.parse(value);
+  return arcadeGameRegistry.assertId(value);
 }

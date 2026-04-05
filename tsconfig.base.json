@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ES2022"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
@@ -20,19 +16,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@cube-arcade/game-engine": [
-        "packages/game-engine/src/index.ts"
-      ],
-      "@cube-arcade/smartcube": [
-        "packages/smartcube/src/index.ts"
-      ],
-      "@cube-arcade/testing": [
-        "packages/testing/src/index.ts"
-      ],
-      "@cube-arcade/ui": [
-        "packages/ui/src/index.ts"
-      ]
+      "@cube-arcade/game-sdk": ["packages/game-sdk/src/index.ts"],
+      "@cube-arcade/game-engine": ["packages/game-engine/src/index.ts"],
+      "@cube-arcade/smartcube": ["packages/smartcube/src/index.ts"],
+      "@cube-arcade/testing": ["packages/testing/src/index.ts"],
+      "@cube-arcade/ui": ["packages/ui/src/index.ts"]
     }
   }
 }
-

@@ -1,10 +1,12 @@
+import {
+  type GameController,
+  type GameMeta,
+  defineGame,
+  isDirectionalCommand,
+} from "@cube-arcade/game-sdk";
+
 import { randomIndex } from "../random";
-import type {
-  CubeCommand,
-  Game2048Snapshot,
-  GameController,
-  GameMeta,
-} from "../types";
+import type { Game2048Snapshot } from "../types";
 
 interface State2048 {
   board: number[];
@@ -16,7 +18,7 @@ interface State2048 {
 
 const SIZE = 4;
 
-const META: GameMeta = {
+const META: GameMeta<"2048"> = {
   accent: "#f29f3a",
   controls: [
     { command: "left", effect: "Slide the board left", label: "Left" },
@@ -65,7 +67,7 @@ function createInitialState(seed = 7): State2048 {
   };
 }
 
-function lineIndices(direction: CubeCommand): number[][] {
+function lineIndices(direction: "left" | "right" | "up" | "down"): number[][] {
   const rows = Array.from({ length: SIZE }, (_, index) => index);
   if (direction === "left" || direction === "right") {
     return rows.map((row) =>
@@ -133,7 +135,10 @@ function canMove(board: number[]): boolean {
   return false;
 }
 
-function applyDirectionalMove(board: number[], direction: CubeCommand) {
+function applyDirectionalMove(
+  board: number[],
+  direction: "left" | "right" | "up" | "down",
+) {
   const nextBoard = [...board];
   let moved = false;
   let scoreDelta = 0;
@@ -156,6 +161,25 @@ export function create2048Game(
 ): GameController<Game2048Snapshot> {
   let state = createInitialState(seed);
 
+  function applyCommand(command: "left" | "right" | "up" | "down") {
+    if (state.gameOver || state.won) {
+      return;
+    }
+    const result = applyDirectionalMove(state.board, command);
+    if (!result.moved) {
+      return;
+    }
+
+    const [nextBoard, nextSeed] = spawnTile(result.nextBoard, state.seed);
+    state = {
+      board: nextBoard,
+      gameOver: !canMove(nextBoard),
+      score: state.score + result.scoreDelta,
+      seed: nextSeed,
+      won: nextBoard.some((value) => value >= 2048),
+    };
+  }
+
   return {
     getSnapshot() {
       return {
@@ -173,26 +197,17 @@ export function create2048Game(
         won: state.won,
       };
     },
-    handleCommand(command: CubeCommand) {
-      if (state.gameOver || state.won) {
+    handleCommand(command) {
+      if (!isDirectionalCommand(command)) {
         return;
       }
-      if (!["left", "right", "up", "down"].includes(command)) {
+      applyCommand(command);
+    },
+    handleInput({ command }) {
+      if (!isDirectionalCommand(command)) {
         return;
       }
-      const result = applyDirectionalMove(state.board, command);
-      if (!result.moved) {
-        return;
-      }
-
-      const [nextBoard, nextSeed] = spawnTile(result.nextBoard, state.seed);
-      state = {
-        board: nextBoard,
-        gameOver: !canMove(nextBoard),
-        score: state.score + result.scoreDelta,
-        seed: nextSeed,
-        won: nextBoard.some((value) => value >= 2048),
-      };
+      applyCommand(command);
     },
     meta: META,
     reset(nextSeed?: number) {
@@ -201,3 +216,8 @@ export function create2048Game(
     tick() {},
   };
 }
+
+export const game2048 = defineGame({
+  create: create2048Game,
+  meta: META,
+});

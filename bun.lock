@@ -19,6 +19,7 @@
       "dependencies": {
         "@ai-sdk/openai": "^1.3.24",
         "@cube-arcade/game-engine": "workspace:*",
+        "@cube-arcade/game-sdk": "workspace:*",
         "@cube-arcade/smartcube": "workspace:*",
         "@cube-arcade/ui": "workspace:*",
         "@react-three/drei": "^10.7.4",
@@ -46,13 +47,18 @@
       "name": "@cube-arcade/game-engine",
       "version": "0.0.0",
       "dependencies": {
-        "zod": "^4.1.11",
+        "@cube-arcade/game-sdk": "workspace:*",
       },
+    },
+    "packages/game-sdk": {
+      "name": "@cube-arcade/game-sdk",
+      "version": "0.0.0",
     },
     "packages/smartcube": {
       "name": "@cube-arcade/smartcube",
       "version": "0.0.0",
       "dependencies": {
+        "@cube-arcade/game-sdk": "workspace:*",
         "cubing": "^0.57.4",
         "gan-web-bluetooth": "^3.0.2",
         "zod": "^4.1.11",
@@ -63,6 +69,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@cube-arcade/game-engine": "workspace:*",
+        "@cube-arcade/game-sdk": "workspace:*",
         "@cube-arcade/smartcube": "workspace:*",
       },
     },
@@ -147,6 +154,8 @@
     "@csstools/css-tokenizer": ["@csstools/css-tokenizer@4.0.0", "", {}, "sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA=="],
 
     "@cube-arcade/game-engine": ["@cube-arcade/game-engine@workspace:packages/game-engine"],
+
+    "@cube-arcade/game-sdk": ["@cube-arcade/game-sdk@workspace:packages/game-sdk"],
 
     "@cube-arcade/smartcube": ["@cube-arcade/smartcube@workspace:packages/smartcube"],
 

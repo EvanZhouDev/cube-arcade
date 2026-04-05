@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cube-arcade/game-sdk": "workspace:*",
     "@cube-arcade/game-engine": "workspace:*",
     "@cube-arcade/smartcube": "workspace:*"
   }

@@ -3,8 +3,27 @@ import { expect, test } from "@playwright/test";
 test("simulator drives the arcade flow across multiple games", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/?debug=1");
 
+  const statusButton = page.getByTestId("status-button");
+  const modal = page.getByTestId("connect-modal");
+
+  await expect(statusButton).toContainText("NO CUBE CONNECTED");
+
+  await page.getByTestId("connect-cube-button").click();
+  await expect(modal).toBeVisible();
+  await modal
+    .locator(".connect-modal__header")
+    .getByRole("button", { name: "CLOSE", exact: true })
+    .click();
+  await expect(modal).toHaveCount(0);
+
+  await statusButton.click();
+  await expect(modal).toBeVisible();
+
+  await page
+    .getByRole("button", { exact: true, name: "SHOW ADVANCED" })
+    .click();
   const macInput = page.getByTestId("cube-mac-input");
   await expect(macInput).toHaveAttribute("type", "password");
   await macInput.fill("cc-a3-00-12-34-56");
@@ -13,7 +32,12 @@ test("simulator drives the arcade flow across multiple games", async ({
   await page.getByTestId("cube-mac-toggle").click();
   await expect(macInput).toHaveAttribute("type", "text");
 
-  await page.getByRole("button", { name: "Use Simulator" }).click();
+  await page
+    .getByRole("button", { exact: true, name: "USE SIMULATOR" })
+    .click();
+  await expect(page.getByTestId("connect-modal")).toHaveCount(0);
+  await expect(statusButton).toContainText("CUBE CONNECTED");
+
   await page.getByTestId("sim-move-U").click();
 
   await expect(page.getByTestId("status-last-move")).toHaveText("U");

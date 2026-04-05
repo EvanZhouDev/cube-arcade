@@ -1,10 +1,12 @@
+import {
+  type CubeCommand,
+  type GameController,
+  type GameMeta,
+  defineGame,
+} from "@cube-arcade/game-sdk";
+
 import { randomIndex } from "../random";
-import type {
-  CubeCommand,
-  GameController,
-  GameMeta,
-  TetrisSnapshot,
-} from "../types";
+import type { TetrisSnapshot } from "../types";
 
 type TetrominoType = "I" | "J" | "L" | "O" | "S" | "T" | "Z";
 type Cell = [number, number];
@@ -174,7 +176,7 @@ const COLORS: Record<TetrominoType, string> = {
   Z: "#ef5955",
 };
 
-const META: GameMeta = {
+const META: GameMeta<"tetris"> = {
   accent: "#8f63ff",
   controls: [
     { command: "left", effect: "Shift the piece left", label: "Move left" },
@@ -409,26 +411,11 @@ function renderBoard(state: TetrisState): (string | null)[][] {
   return board;
 }
 
-export function createTetrisGame(
-  seed?: number,
-): GameController<TetrisSnapshot> {
-  let state = createInitialState(seed);
+export const tetrisGame = defineGame({
+  create(seed?: number): GameController<TetrisSnapshot> {
+    let state = createInitialState(seed);
 
-  return {
-    getSnapshot() {
-      return {
-        board: renderBoard(state),
-        gameOver: state.gameOver,
-        id: "tetris",
-        level: state.level,
-        lines: state.lines,
-        name: META.name,
-        nextQueue: state.nextQueue,
-        score: state.score,
-        won: state.won,
-      };
-    },
-    handleCommand(command: CubeCommand) {
+    function applyCommand(command: CubeCommand) {
       if (state.gameOver) {
         return;
       }
@@ -449,26 +436,55 @@ export function createTetrisGame(
       } else if (command === "secondary") {
         state = rotatePiece(state, -1);
       }
-    },
-    meta: META,
-    reset(nextSeed?: number) {
-      state = createInitialState(nextSeed);
-    },
-    tick(deltaMs: number) {
-      if (state.gameOver) {
-        return;
-      }
-      let accumulatorMs = state.accumulatorMs + deltaMs;
-      const interval = dropInterval(state.level);
-      while (accumulatorMs >= interval) {
-        accumulatorMs -= interval;
-        const next = movePiece(state, 0, 1);
-        state = next === state ? lockPiece(state) : next;
-      }
-      state = {
-        ...state,
-        accumulatorMs,
-      };
-    },
-  };
+    }
+
+    return {
+      getSnapshot() {
+        return {
+          board: renderBoard(state),
+          gameOver: state.gameOver,
+          id: "tetris",
+          level: state.level,
+          lines: state.lines,
+          name: META.name,
+          nextQueue: state.nextQueue,
+          score: state.score,
+          won: state.won,
+        };
+      },
+      handleCommand(command: CubeCommand) {
+        applyCommand(command);
+      },
+      handleInput({ command }) {
+        applyCommand(command);
+      },
+      meta: META,
+      reset(nextSeed?: number) {
+        state = createInitialState(nextSeed);
+      },
+      tick(deltaMs: number) {
+        if (state.gameOver) {
+          return;
+        }
+        let accumulatorMs = state.accumulatorMs + deltaMs;
+        const interval = dropInterval(state.level);
+        while (accumulatorMs >= interval) {
+          accumulatorMs -= interval;
+          const next = movePiece(state, 0, 1);
+          state = next === state ? lockPiece(state) : next;
+        }
+        state = {
+          ...state,
+          accumulatorMs,
+        };
+      },
+    };
+  },
+  meta: META,
+});
+
+export function createTetrisGame(
+  seed?: number,
+): GameController<TetrisSnapshot> {
+  return tetrisGame.create(seed);
 }

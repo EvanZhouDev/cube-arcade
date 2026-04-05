@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
+import { Silkscreen, VT323 } from "next/font/google";
 
 import "./globals.css";
+
+const arcadeDisplay = Silkscreen({
+  subsets: ["latin"],
+  variable: "--font-arcade",
+  weight: ["400", "700"],
+});
+
+const arcadeText = VT323({
+  subsets: ["latin"],
+  variable: "--font-arcade-text",
+  weight: "400",
+});
 
 export const metadata: Metadata = {
   description:
@@ -15,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={`${arcadeDisplay.variable} ${arcadeText.variable}`}>
+        {children}
+      </body>
     </html>
   );
 }

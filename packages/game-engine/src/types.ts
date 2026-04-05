@@ -1,37 +1,13 @@
-export type ArcadeGameId = "snake" | "2048" | "tetris" | "breakout";
-export type CubeCommand =
-  | "left"
-  | "right"
-  | "up"
-  | "down"
-  | "primary"
-  | "secondary"
-  | "pause";
+import type {
+  BaseGameSnapshot,
+  GameController,
+  GameDefinition,
+  GameMeta,
+} from "@cube-arcade/game-sdk";
 
-export interface GameControlHint {
-  command: CubeCommand;
-  effect: string;
-  label: string;
-}
+export type { CubeCommand, GameControlHint } from "@cube-arcade/game-sdk";
 
-export interface GameMeta {
-  accent: string;
-  controls: GameControlHint[];
-  description: string;
-  id: ArcadeGameId;
-  name: string;
-  tagline: string;
-}
-
-export interface BaseGameSnapshot {
-  gameOver: boolean;
-  id: ArcadeGameId;
-  name: string;
-  score: number;
-  won: boolean;
-}
-
-export interface SnakeSnapshot extends BaseGameSnapshot {
+export interface SnakeSnapshot extends BaseGameSnapshot<"snake"> {
   food: {
     x: number;
     y: number;
@@ -41,13 +17,13 @@ export interface SnakeSnapshot extends BaseGameSnapshot {
   moveBudgetMs: number;
 }
 
-export interface Game2048Snapshot extends BaseGameSnapshot {
+export interface Game2048Snapshot extends BaseGameSnapshot<"2048"> {
   board: number[][];
   id: "2048";
   maxTile: number;
 }
 
-export interface TetrisSnapshot extends BaseGameSnapshot {
+export interface TetrisSnapshot extends BaseGameSnapshot<"tetris"> {
   board: (string | null)[][];
   id: "tetris";
   level: number;
@@ -55,7 +31,7 @@ export interface TetrisSnapshot extends BaseGameSnapshot {
   nextQueue: string[];
 }
 
-export interface BreakoutSnapshot extends BaseGameSnapshot {
+export interface BreakoutSnapshot extends BaseGameSnapshot<"breakout"> {
   ball: {
     active: boolean;
     x: number;
@@ -82,12 +58,11 @@ export type ArcadeSnapshot =
   | TetrisSnapshot
   | BreakoutSnapshot;
 
-export interface GameController<
+export type ArcadeGameId = ArcadeSnapshot["id"];
+export type ArcadeGameDefinition<TId extends ArcadeGameId = ArcadeGameId> =
+  GameDefinition<TId, Extract<ArcadeSnapshot, { id: TId }>>;
+export type ArcadeGameController<
   TSnapshot extends ArcadeSnapshot = ArcadeSnapshot,
-> {
-  getSnapshot: () => TSnapshot;
-  handleCommand: (command: CubeCommand) => void;
-  meta: GameMeta;
-  reset: (seed?: number) => void;
-  tick: (deltaMs: number) => void;
-}
+> = GameController<TSnapshot>;
+export type ArcadeGameMeta<TId extends ArcadeGameId = ArcadeGameId> =
+  GameMeta<TId>;
