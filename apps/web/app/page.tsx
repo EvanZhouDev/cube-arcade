@@ -19,6 +19,10 @@ import {
 } from "react";
 
 import { useArcadeStore } from "../src/lib/arcade-store";
+import {
+  manualMacAddressForAttempt,
+  shouldOpenMacAddressModal,
+} from "../src/lib/mac-flow";
 
 const SIMULATOR_MOVES = [
   { effect: "Left", move: "U" },
@@ -148,10 +152,14 @@ export default function Page() {
   const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
 
   async function handleConnectCube() {
+    const isMacRetry = isMacModalOpen;
     setIsMacModalOpen(false);
     await connectHardware({
       knownMacAddressesByDeviceName: savedMacAddresses,
-      manualMacAddress,
+      manualMacAddress: manualMacAddressForAttempt(
+        isMacRetry,
+        manualMacAddress,
+      ),
     });
 
     if (useArcadeStore.getState().session) {
@@ -159,10 +167,13 @@ export default function Page() {
       return;
     }
 
-    const errorMessage = useArcadeStore.getState().error ?? "";
+    const state = useArcadeStore.getState();
     if (
-      errorMessage.includes("MAC address") ||
-      errorMessage.includes("Unable to determine cube MAC address")
+      shouldOpenMacAddressModal(
+        state.error,
+        state.selectedDeviceName,
+        savedMacAddresses,
+      )
     ) {
       setIsMacModalOpen(true);
     }
