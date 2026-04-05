@@ -154,7 +154,11 @@ export default function Page() {
     >
       <div className="arcade-content">
         <div className="arcade-layout">
-          <aside className="game-sidebar">
+          <aside
+            className={clsx("game-sidebar", {
+              "game-sidebar--offline": !cubeState.connected,
+            })}
+          >
             <h1 className="brand-block game-sidebar__brand">CUBE ARCADE</h1>
             <div className="game-sidebar__list">
               {ARCADE_GAMES.map((game) => (
@@ -165,16 +169,11 @@ export default function Page() {
                   data-testid={`game-card-${game.meta.id}`}
                   key={game.meta.id}
                   onClick={() => selectGame(game.meta.id)}
-                  style={{ "--game-accent": game.meta.accent } as CSSProperties}
                   type="button"
                 >
                   <strong>{game.meta.name}</strong>
                 </button>
               ))}
-            </div>
-            <div className="game-sidebar__footer">
-              <span>{ARCADE_GAMES.length} GAMES READY</span>
-              <strong>{meta.name}</strong>
             </div>
           </aside>
 
