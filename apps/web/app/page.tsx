@@ -423,7 +423,7 @@ function ConnectModal({
         </div>
 
         {connected ? (
-          <div className="connect-modal__panel">
+          <div className="connect-modal__body">
             <p className="connect-modal__lede">
               Active link: <strong>{cubeName}</strong>
             </p>
@@ -442,25 +442,70 @@ function ConnectModal({
             </div>
           </div>
         ) : (
-          <div className="connect-modal__panel">
-            <p className="connect-modal__lede">
-              Tap connect and the app will try to detect your cube
-              automatically.
-            </p>
-            {needsMacAddress ? (
-              <p className="connect-modal__lede connect-modal__lede--alert">
-                CUBE FOUND. MAC ADDRESS NEEDED TO FINISH CONNECTING.
-              </p>
-            ) : null}
-            <div className="connect-modal__actions">
+          <div className="connect-modal__body">
+            <div className="connect-modal__hero">
               <button
+                className="connect-modal__primary-action"
                 data-testid="connect-cube-modal-button"
                 onClick={() => void onConnectCube()}
                 type="button"
               >
-                {needsMacAddress ? "RETRY WITH MAC" : "CONNECT CUBE"}
+                {needsMacAddress ? "RETRY WITH MAC ADDRESS" : "CONNECT CUBE"}
               </button>
+              <p className="connect-modal__lede">
+                Press connect and select your smartcube.
+              </p>
             </div>
+
+            {needsMacAddress ? (
+              <div className="field-stack connect-modal__mac-block">
+                <label
+                  className="field-label connect-modal__mac-title"
+                  htmlFor="cube-mac-address"
+                >
+                  MAC ADDRESS
+                </label>
+                <div className="input-with-action">
+                  <input
+                    autoComplete="off"
+                    className="text-input"
+                    data-testid="cube-mac-input"
+                    id="cube-mac-address"
+                    onBlur={() => {
+                      const normalized =
+                        normalizeSmartcubeMac(manualMacAddress);
+                      if (normalized) {
+                        onManualMacChange(normalized);
+                      }
+                    }}
+                    onChange={(event) => {
+                      onManualMacChange(event.target.value);
+                    }}
+                    placeholder="CC:A3:00:12:34:56"
+                    spellCheck={false}
+                    type={showMacAddress ? "text" : "password"}
+                    value={manualMacAddress}
+                  />
+                  <button
+                    aria-label={
+                      showMacAddress ? "Hide MAC address" : "Show MAC address"
+                    }
+                    className="ghost-button input-with-action__button"
+                    data-testid="cube-mac-toggle"
+                    onClick={onToggleMacAddress}
+                    type="button"
+                  >
+                    {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showMacAddress ? "HIDE" : "SHOW"}
+                  </button>
+                </div>
+                <p className="field-caption">
+                  Go to `chrome://bluetooth-internals/#devices` to copy the MAC
+                  address of your device. Then, paste it here and try again.
+                </p>
+              </div>
+            ) : null}
+
             {isDebugMode ? (
               <div className="connect-modal__debug">
                 <span>DEBUG</span>
@@ -474,63 +519,27 @@ function ConnectModal({
                 </button>
               </div>
             ) : null}
+            {bluetoothAvailable === false ? (
+              <p className="panel__warning">
+                WEB BLUETOOTH IS UNAVAILABLE IN THIS BROWSER. USE CHROMIUM OR
+                DEBUG SIMULATOR.
+              </p>
+            ) : null}
+            {error ? <p className="panel__warning">{error}</p> : null}
           </div>
         )}
 
-        <div className="connect-modal__panel">
-          {needsMacAddress ? (
-            <div className="field-stack">
-              <label className="field-label" htmlFor="cube-mac-address">
-                MAC ADDRESS
-              </label>
-              <div className="input-with-action">
-                <input
-                  autoComplete="off"
-                  className="text-input"
-                  data-testid="cube-mac-input"
-                  id="cube-mac-address"
-                  onBlur={() => {
-                    const normalized = normalizeSmartcubeMac(manualMacAddress);
-                    if (normalized) {
-                      onManualMacChange(normalized);
-                    }
-                  }}
-                  onChange={(event) => {
-                    onManualMacChange(event.target.value);
-                  }}
-                  placeholder="CC:A3:00:12:34:56"
-                  spellCheck={false}
-                  type={showMacAddress ? "text" : "password"}
-                  value={manualMacAddress}
-                />
-                <button
-                  aria-label={
-                    showMacAddress ? "Hide MAC address" : "Show MAC address"
-                  }
-                  className="ghost-button input-with-action__button"
-                  data-testid="cube-mac-toggle"
-                  onClick={onToggleMacAddress}
-                  type="button"
-                >
-                  {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
-                  {showMacAddress ? "HIDE" : "SHOW"}
-                </button>
-              </div>
-              <p className="field-caption">
-                Only needed when the selected cube does not broadcast its MAC
-                address automatically.
+        {connected ? (
+          <>
+            {bluetoothAvailable === false ? (
+              <p className="panel__warning">
+                WEB BLUETOOTH IS UNAVAILABLE IN THIS BROWSER. USE CHROMIUM OR
+                DEBUG SIMULATOR.
               </p>
-            </div>
-          ) : null}
-
-          {bluetoothAvailable === false ? (
-            <p className="panel__warning">
-              WEB BLUETOOTH IS UNAVAILABLE IN THIS BROWSER. USE CHROMIUM OR
-              DEBUG SIMULATOR.
-            </p>
-          ) : null}
-          {error ? <p className="panel__warning">{error}</p> : null}
-        </div>
+            ) : null}
+            {error ? <p className="panel__warning">{error}</p> : null}
+          </>
+        ) : null}
       </section>
     </dialog>
   );
