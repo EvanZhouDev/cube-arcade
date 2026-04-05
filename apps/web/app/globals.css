@@ -736,8 +736,10 @@ input:focus-visible {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.55rem;
+  justify-content: center;
+  gap: 0.62rem;
+  min-height: 2rem;
+  padding: 0.34rem 0.62rem;
   background: rgba(0, 0, 0, 0.72);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.98);
@@ -751,14 +753,18 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.2rem;
-  min-width: 1.2rem;
+  width: 1.55rem;
+  min-width: 1.55rem;
   color: currentColor;
-  font-size: 1.2rem;
+  font-size: 1.55rem;
   line-height: 1;
+  transform: translateY(-0.02em);
 }
 
 .control-cube__hint-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
 }
 
