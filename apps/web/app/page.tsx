@@ -169,7 +169,6 @@ export default function Page() {
       <div className="arcade-content">
         <div className="arcade-layout">
           <aside className="game-sidebar">
-            <div className="section-label">SELECT GAME</div>
             <div className="game-sidebar__list">
               {ARCADE_GAMES.map((game) => (
                 <button
@@ -183,7 +182,7 @@ export default function Page() {
                   type="button"
                 >
                   <strong>{game.meta.name}</strong>
-                  <span>{game.meta.tagline}</span>
+                  <span>{game.meta.description}</span>
                 </button>
               ))}
             </div>
@@ -227,11 +226,6 @@ export default function Page() {
             className="cube-sidebar"
             style={{ "--game-accent": meta.accent } as CSSProperties}
           >
-            <div className="cube-sidebar__orientation">
-              <span>ORIENTATION</span>
-              <strong>WHITE TOP</strong>
-              <strong>GREEN FRONT</strong>
-            </div>
             <div className="section-label">CONTROL CUBE</div>
             <div
               className={clsx("cube-sidebar__visual", {

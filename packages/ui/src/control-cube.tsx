@@ -4,7 +4,8 @@ import {
   faceletsForFace,
 } from "@cube-arcade/smartcube";
 import { clsx } from "clsx";
-import type { CSSProperties } from "react";
+import { useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 
 const FACE_TRANSFORMS: Record<FaceName, string> = {
   B: "rotateY(180deg) translateZ(var(--cube-half))",
@@ -23,6 +24,16 @@ const TURN_SYMBOL: Record<CommandBinding["turn"], string> = {
 
 const VISIBLE_FACES: FaceName[] = ["U", "F", "R", "L", "B", "D"];
 const STICKER_KEYS = ["tl", "tm", "tr", "ml", "mm", "mr", "bl", "bm", "br"];
+const DEFAULT_ROTATION = { x: -24, y: -34 };
+const ROTATION_SENSITIVITY = 0.35;
+
+interface DragState {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  x: number;
+  y: number;
+}
 
 interface ControlCubeProps {
   bindings: CommandBinding[];
@@ -96,10 +107,68 @@ function mapStickerColor(sticker: string): string {
 }
 
 export function ControlCube({ bindings, facelets }: ControlCubeProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [rotation, setRotation] = useState(DEFAULT_ROTATION);
+  const dragStateRef = useRef<DragState | null>(null);
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: rotation.x,
+      y: rotation.y,
+    };
+    setIsDragging(true);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+
+    setRotation({
+      x: Math.max(
+        -82,
+        Math.min(82, dragState.x - deltaY * ROTATION_SENSITIVITY),
+      ),
+      y: dragState.y + deltaX * ROTATION_SENSITIVITY,
+    });
+  };
+
+  const handlePointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragStateRef.current?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    dragStateRef.current = null;
+    setIsDragging(false);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+  };
+
   return (
     <div className="control-cube">
-      <div className="control-cube__stage">
-        <div className="control-cube__body">
+      <div
+        className={clsx("control-cube__stage", {
+          "control-cube__stage--dragging": isDragging,
+        })}
+        onPointerCancel={handlePointerEnd}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+      >
+        <div
+          className="control-cube__body"
+          data-testid="control-cube-body"
+          style={{
+            transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+          }}
+        >
           <div className="control-cube__core" />
           {VISIBLE_FACES.map((face) => (
             <StickerFace

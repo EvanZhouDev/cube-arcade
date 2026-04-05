@@ -53,6 +53,28 @@ test("debug simulator controls stay hidden on the main arcade route", async ({
   await page.goto("/");
 
   await expect(page.locator(".debug-dock")).toHaveCount(0);
+  await expect(page.getByText("SELECT GAME")).toHaveCount(0);
+  await expect(page.getByText("ORIENTATION")).toHaveCount(0);
+
+  const cube = page.getByTestId("control-cube-body");
+  const beforeDrag = await cube.getAttribute("style");
+  const box = await cube.boundingBox();
+
+  expect(box).not.toBeNull();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(
+      box.x + box.width / 2 + 48,
+      box.y + box.height / 2 - 24,
+      { steps: 6 },
+    );
+    await page.mouse.up();
+  }
+
+  const afterDrag = await cube.getAttribute("style");
+  expect(afterDrag).not.toBe(beforeDrag);
 
   await page.getByTestId("status-button").click();
   await expect(page.getByTestId("connect-modal")).toBeVisible();

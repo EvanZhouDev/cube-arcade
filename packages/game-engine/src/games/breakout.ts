@@ -49,7 +49,7 @@ const META: GameMeta<"breakout"> = {
     { command: "primary", effect: "Launch the ball", label: "Launch" },
   ],
   description:
-    "A clean single-screen brick breaker that turns face twists into paddle movement.",
+    "Keep the ball alive, control the rebound angle, and clear every brick on the wall.",
   id: "breakout",
   name: "Breakout",
   tagline: "Launch, track angles, and clear the wall.",

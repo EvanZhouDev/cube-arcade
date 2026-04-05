@@ -27,7 +27,7 @@ const META: GameMeta<"2048"> = {
     { command: "down", effect: "Slide downward", label: "Down" },
   ],
   description:
-    "The cube becomes a directional pad for the cleanest 2048 implementation in the stack.",
+    "Merge matching tiles, keep the board breathing, and build toward the 2048 block.",
   id: "2048",
   name: "2048",
   tagline: "Swipe logic translated into face turns.",

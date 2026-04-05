@@ -27,16 +27,7 @@ body {
 }
 
 html {
-  background: radial-gradient(
-      circle at top,
-      rgba(108, 255, 236, 0.12),
-      transparent 26%
-    ),
-    radial-gradient(
-      circle at 80% 0%,
-      rgba(255, 120, 200, 0.12),
-      transparent 22%
-    ), linear-gradient(180deg, #040508 0%, #06070c 100%);
+  background: #040508;
   color: var(--text);
 }
 
@@ -120,15 +111,12 @@ input:focus-visible {
   gap: 1rem;
   padding: 1rem 0 0.9rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
 }
 
 .brand-block,
 .status-button,
 .section-label,
 .game-sidebar__item strong,
-.cube-sidebar__orientation span,
 .control-list__item strong,
 .game-panel__title,
 .connect-modal__header h2,
@@ -227,15 +215,15 @@ input:focus-visible {
 }
 
 .game-sidebar__item strong {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   letter-spacing: 0.16em;
 }
 
 .game-sidebar__item span {
   margin-top: 0.4rem;
   color: var(--muted);
-  font-size: 1.02rem;
-  line-height: 1.08;
+  font-size: 0.98rem;
+  line-height: 1.26;
 }
 
 .game-sidebar__item--active,
@@ -258,8 +246,7 @@ input:focus-visible {
   position: relative;
   min-height: calc(100vh - 7.75rem);
   width: 100%;
-  padding: 0.75rem;
-  background: var(--surface-strong);
+  background: transparent;
   border: 1px solid
     color-mix(
       in srgb,
@@ -279,18 +266,12 @@ input:focus-visible {
   align-items: stretch;
   justify-content: center;
   overflow: hidden;
-  padding: 1.2rem;
+  padding: 1.35rem;
   background: radial-gradient(
       circle at center,
       rgba(108, 255, 236, 0.08),
       transparent 54%
     ), linear-gradient(180deg, rgba(11, 16, 25, 0.96), rgba(5, 7, 11, 0.98));
-  border: 1px solid
-    color-mix(
-      in srgb,
-      var(--game-accent, var(--cyan)) 18%,
-      rgba(255, 255, 255, 0.08)
-    );
 }
 
 .cabinet__viewport::after {
@@ -338,27 +319,6 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-}
-
-.cube-sidebar__orientation {
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.cube-sidebar__orientation span {
-  display: block;
-  margin-bottom: 0.55rem;
-  color: var(--game-accent, var(--cyan));
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
-}
-
-.cube-sidebar__orientation strong {
-  display: block;
-  font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 1.35rem;
-  letter-spacing: 0.08em;
-  line-height: 1.05;
 }
 
 .cube-sidebar__visual {
@@ -412,7 +372,7 @@ input:focus-visible {
 .control-list__item strong {
   display: block;
   margin-bottom: 0.28rem;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   letter-spacing: 0.16em;
   color: var(--game-accent, var(--cyan));
   text-transform: uppercase;
@@ -506,7 +466,6 @@ input:focus-visible {
 .queue-panel {
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .queue-panel > span {
@@ -551,7 +510,6 @@ input:focus-visible {
   aspect-ratio: 1;
   padding: 0.45rem;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .board--tetris {
@@ -613,7 +571,6 @@ input:focus-visible {
   width: 100%;
   min-height: 32rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(
     180deg,
     rgba(9, 14, 22, 0.96),
@@ -675,13 +632,20 @@ input:focus-visible {
 }
 
 .control-cube__stage {
-  --cube-size: 11.9rem;
-  --cube-half: 5.95rem;
-  width: 17rem;
-  height: 17rem;
+  --cube-size: 12rem;
+  --cube-half: 6rem;
+  width: 18rem;
+  height: 18rem;
   display: grid;
   place-items: center;
-  perspective: 1200px;
+  perspective: 1400px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.control-cube__stage--dragging {
+  cursor: grabbing;
 }
 
 .control-cube__body {
@@ -689,16 +653,20 @@ input:focus-visible {
   width: var(--cube-size);
   height: var(--cube-size);
   transform-style: preserve-3d;
-  transform: rotateX(-24deg) rotateY(-34deg);
+  transition: transform 140ms ease-out;
+  will-change: transform;
+}
+
+.control-cube__stage--dragging .control-cube__body {
+  transition: none;
 }
 
 .control-cube__core {
   position: absolute;
   inset: 0;
   transform: translateZ(0);
-  background: linear-gradient(180deg, #0f141d, #090c13);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+  background: linear-gradient(180deg, #0d1118, #090c12);
+  border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .control-cube__face {
@@ -706,9 +674,9 @@ input:focus-visible {
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 0.42rem;
-  background: rgba(10, 13, 20, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.16rem;
+  background: rgba(8, 10, 16, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.025);
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
@@ -728,37 +696,43 @@ input:focus-visible {
 
 .control-cube__face-badge {
   position: absolute;
-  top: 0.45rem;
-  right: 0.45rem;
-  color: rgba(255, 255, 255, 0.48);
+  top: 0.4rem;
+  right: 0.4rem;
+  color: rgba(255, 255, 255, 0.64);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
 }
 
 .control-cube__hints {
   position: absolute;
-  inset: 0.5rem;
+  inset: 0.45rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 0.22rem;
+  gap: 0.28rem;
 }
 
 .control-cube__hint {
   align-self: flex-start;
   display: inline-flex;
-  gap: 0.35rem;
-  padding: 0.18rem 0.38rem;
+  gap: 0.42rem;
+  padding: 0.24rem 0.46rem;
   background: rgba(5, 7, 11, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .control-cube__hint-symbol {
   color: var(--yellow);
+}
+
+.control-cube__hint-label {
+  line-height: 1;
 }
 
 .modal-backdrop {

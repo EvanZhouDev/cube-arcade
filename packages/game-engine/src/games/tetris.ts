@@ -191,7 +191,7 @@ const META: GameMeta<"tetris"> = {
     },
   ],
   description:
-    "Quarter turns become the full modern Tetris control vocabulary, including both rotations and hard drop.",
+    "Stack falling pieces, burn lines cleanly, and keep the well from topping out.",
   id: "tetris",
   name: "Tetris",
   tagline: "A real ruleset with bag randomization and line clears.",

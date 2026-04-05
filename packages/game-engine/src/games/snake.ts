@@ -39,7 +39,7 @@ const META: GameMeta<"snake"> = {
     { command: "down", effect: "Dive downward", label: "Down" },
   ],
   description:
-    "A clean grid-runner that turns white and red face twists into four-direction movement.",
+    "Grow the snake, route around your own trail, and survive as the board fills in.",
   id: "snake",
   name: "Snake",
   tagline: "Classic routing with cube-face steering.",
