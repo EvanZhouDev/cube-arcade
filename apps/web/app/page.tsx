@@ -182,7 +182,6 @@ export default function Page() {
                   type="button"
                 >
                   <strong>{game.meta.name}</strong>
-                  <span>{game.meta.description}</span>
                 </button>
               ))}
             </div>
@@ -226,7 +225,6 @@ export default function Page() {
             className="cube-sidebar"
             style={{ "--game-accent": meta.accent } as CSSProperties}
           >
-            <div className="section-label">CONTROL CUBE</div>
             <div
               className={clsx("cube-sidebar__visual", {
                 "cube-sidebar__visual--offline": !cubeState.connected,

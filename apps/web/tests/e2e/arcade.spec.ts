@@ -55,6 +55,8 @@ test("debug simulator controls stay hidden on the main arcade route", async ({
   await expect(page.locator(".debug-dock")).toHaveCount(0);
   await expect(page.getByText("SELECT GAME")).toHaveCount(0);
   await expect(page.getByText("ORIENTATION")).toHaveCount(0);
+  await expect(page.getByText("CONTROL CUBE")).toHaveCount(0);
+  await expect(page.getByText("GROW THE SNAKE")).toHaveCount(0);
 
   const cube = page.getByTestId("control-cube-body");
   const beforeDrag = await cube.getAttribute("style");

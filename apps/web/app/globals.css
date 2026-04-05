@@ -196,10 +196,10 @@ input:focus-visible {
   position: relative;
   width: 100%;
   align-items: flex-start;
-  flex-direction: column;
+  justify-content: center;
   text-align: left;
   min-height: 0;
-  padding: 0.85rem 0 0.85rem 1rem;
+  padding: 1rem 0 1rem 1rem;
   background: transparent;
   border-color: transparent;
   box-shadow: none;
@@ -215,15 +215,12 @@ input:focus-visible {
 }
 
 .game-sidebar__item strong {
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   letter-spacing: 0.16em;
 }
 
 .game-sidebar__item span {
-  margin-top: 0.4rem;
-  color: var(--muted);
-  font-size: 0.98rem;
-  line-height: 1.26;
+  display: none;
 }
 
 .game-sidebar__item--active,
@@ -327,7 +324,7 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 0.2rem 1rem 1rem;
 }
 
 .cube-sidebar__visual--offline {
@@ -696,12 +693,20 @@ input:focus-visible {
 
 .control-cube__face-badge {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
-  color: rgba(255, 255, 255, 0.64);
+  top: 0.34rem;
+  right: 0.34rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.55rem;
+  min-height: 1.55rem;
+  padding: 0.14rem 0.22rem;
+  color: var(--overlay-text);
+  background: var(--overlay-panel);
+  box-shadow: 0 0 0 1px var(--overlay-shadow);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
+  font-size: 1rem;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -717,18 +722,27 @@ input:focus-visible {
 .control-cube__hint {
   align-self: flex-start;
   display: inline-flex;
-  gap: 0.42rem;
-  padding: 0.24rem 0.46rem;
-  background: rgba(5, 7, 11, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.55rem;
+  background: var(--overlay-panel);
+  box-shadow: 0 0 0 1px var(--overlay-shadow);
+  color: var(--overlay-text);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.72rem;
+  font-size: 0.9rem;
   letter-spacing: 0.06em;
   line-height: 1;
 }
 
 .control-cube__hint-symbol {
-  color: var(--yellow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  min-width: 1.2rem;
+  color: currentColor;
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 .control-cube__hint-label {

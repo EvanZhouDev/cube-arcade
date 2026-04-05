@@ -40,6 +40,22 @@ interface ControlCubeProps {
   facelets: string;
 }
 
+function overlayPalette(sticker: string): CSSProperties {
+  const isLightSurface = sticker === "U" || sticker === "D";
+
+  return {
+    "--overlay-panel": isLightSurface
+      ? "rgba(0, 0, 0, 0.62)"
+      : "rgba(255, 255, 255, 0.76)",
+    "--overlay-shadow": isLightSurface
+      ? "rgba(0, 0, 0, 0.16)"
+      : "rgba(255, 255, 255, 0.12)",
+    "--overlay-text": isLightSurface
+      ? "rgba(255, 255, 255, 0.96)"
+      : "rgba(5, 7, 11, 0.94)",
+  } as CSSProperties;
+}
+
 function StickerFace({
   bindings,
   face,
@@ -50,10 +66,14 @@ function StickerFace({
   facelets: string;
 }) {
   const stickers = faceletsForFace(facelets, face);
+  const palette = overlayPalette(stickers[4] ?? face);
   return (
     <div
       className={clsx("control-cube__face", `control-cube__face--${face}`)}
-      style={{ transform: FACE_TRANSFORMS[face] }}
+      style={{
+        ...palette,
+        transform: FACE_TRANSFORMS[face],
+      }}
     >
       <div className="control-cube__face-grid">
         {stickers.map((sticker, index) => (

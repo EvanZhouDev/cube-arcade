@@ -27,7 +27,7 @@ const snakeSnapshot: SnakeSnapshot = {
 
 describe("ui package", () => {
   it("renders control hints for visible cube faces", () => {
-    render(
+    const { container } = render(
       <ControlCube
         bindings={getBindings(["left", "right", "primary"])}
         facelets={SOLVED_FACELETS}
@@ -37,6 +37,16 @@ describe("ui package", () => {
     expect(screen.getByText("LEFT")).toBeTruthy();
     expect(screen.getByText("RIGHT")).toBeTruthy();
     expect(screen.getByText("PRIMARY")).toBeTruthy();
+
+    const upFace = container.querySelector(".control-cube__face--U");
+    const frontFace = container.querySelector(".control-cube__face--F");
+
+    expect(upFace?.getAttribute("style")).toContain(
+      "--overlay-panel: rgba(0, 0, 0, 0.62)",
+    );
+    expect(frontFace?.getAttribute("style")).toContain(
+      "--overlay-panel: rgba(255, 255, 255, 0.76)",
+    );
   });
 
   it("renders a snake board snapshot", () => {
