@@ -21,10 +21,11 @@ test("simulator drives the arcade flow across multiple games", async ({
 
   await page.getByRole("button", { name: "USE SIMULATOR" }).click();
   await expect(page.getByTestId("connect-modal")).toHaveCount(0);
+  await expect(page.getByTestId("status-button")).toContainText(
+    "CUBE CONNECTED",
+  );
 
   await page.getByTestId("sim-move-U").click();
-  await expect(page.getByTestId("status-last-move")).toHaveText("U");
-  await expect(page.getByTestId("status-last-command")).toHaveText("left");
 
   await page.getByTestId("game-card-tetris").click();
   await page.getByTestId("sim-move-R").click();

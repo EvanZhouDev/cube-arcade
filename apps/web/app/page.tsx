@@ -146,34 +146,29 @@ export default function Page() {
   return (
     <main className="arcade-shell">
       <header className="topbar">
-        <div className="topbar__inner">
-          <div className="brand-block">
-            <p className="brand-block__eyebrow">SMARTCUBE PIXEL ARCADE</p>
-            <h1>CUBE ARCADE</h1>
-          </div>
-          <button
-            className={clsx("status-button", {
-              "status-button--connected": cubeState.connected,
+        <h1 className="brand-block">CUBE ARCADE</h1>
+        <button
+          className={clsx("status-button", {
+            "status-button--connected": cubeState.connected,
+          })}
+          data-testid="status-button"
+          onClick={() => {
+            setIsConnectModalOpen(true);
+          }}
+          type="button"
+        >
+          <span
+            className={clsx("status-button__light", {
+              "status-button__light--connected": cubeState.connected,
             })}
-            data-testid="status-button"
-            onClick={() => {
-              setIsConnectModalOpen(true);
-            }}
-            type="button"
-          >
-            <span
-              className={clsx("status-button__light", {
-                "status-button__light--connected": cubeState.connected,
-              })}
-            />
-            <span>{statusLabel}</span>
-          </button>
-        </div>
+          />
+          <span>{statusLabel}</span>
+        </button>
       </header>
 
       <div className="arcade-content">
         <div className="arcade-layout">
-          <aside className="pixel-panel game-sidebar">
+          <aside className="game-sidebar">
             <div className="section-label">SELECT GAME</div>
             <div className="game-sidebar__list">
               {ARCADE_GAMES.map((game) => (
@@ -195,7 +190,7 @@ export default function Page() {
           </aside>
 
           <section
-            className="pixel-panel cabinet"
+            className="cabinet"
             style={{ "--game-accent": meta.accent } as CSSProperties}
           >
             <div
@@ -228,7 +223,10 @@ export default function Page() {
             </div>
           </section>
 
-          <aside className="pixel-panel cube-sidebar">
+          <aside
+            className="cube-sidebar"
+            style={{ "--game-accent": meta.accent } as CSSProperties}
+          >
             <div className="cube-sidebar__orientation">
               <span>ORIENTATION</span>
               <strong>WHITE TOP</strong>
@@ -244,21 +242,6 @@ export default function Page() {
               {!cubeState.connected ? (
                 <div className="cube-sidebar__overlay">CUBE OFFLINE</div>
               ) : null}
-            </div>
-
-            <div className="signal-strip">
-              <div>
-                <span>LAST TURN</span>
-                <strong data-testid="status-last-move">
-                  {cubeState.lastMove ?? "NONE"}
-                </strong>
-              </div>
-              <div>
-                <span>INPUT</span>
-                <strong data-testid="status-last-command">
-                  {cubeState.lastCommand ?? "WAITING"}
-                </strong>
-              </div>
             </div>
 
             <div className="section-label cube-sidebar__controls-title">
@@ -397,10 +380,7 @@ function ConnectModal({
       />
       <section className="pixel-panel connect-modal">
         <div className="connect-modal__header">
-          <div>
-            <div className="section-label">CUBE LINK</div>
-            <h2>{connected ? "CONNECTED" : "CONNECT YOUR CUBE"}</h2>
-          </div>
+          <h2>{connected ? "CUBE CONNECTED" : "CONNECT YOUR CUBE"}</h2>
           <button className="ghost-button" onClick={onBackdrop} type="button">
             CLOSE
           </button>

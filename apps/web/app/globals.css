@@ -106,6 +106,10 @@ input:focus-visible {
   padding: 0 1rem 1rem;
 }
 
+.arcade-content {
+  min-height: calc(100vh - 5.75rem);
+}
+
 .topbar {
   position: sticky;
   top: 0;
@@ -116,22 +120,15 @@ input:focus-visible {
   gap: 1rem;
   padding: 1rem 0 0.9rem;
   margin-bottom: 1rem;
-  background: linear-gradient(
-    180deg,
-    rgba(5, 6, 10, 0.96),
-    rgba(5, 6, 10, 0.78)
-  );
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
 }
 
-.brand-block__eyebrow,
-.brand-block h1,
+.brand-block,
 .status-button,
 .section-label,
 .game-sidebar__item strong,
 .cube-sidebar__orientation span,
-.signal-strip span,
 .control-list__item strong,
 .game-panel__title,
 .connect-modal__header h2,
@@ -140,14 +137,7 @@ input:focus-visible {
   font-family: var(--font-arcade), "Press Start 2P", monospace;
 }
 
-.brand-block__eyebrow {
-  margin: 0 0 0.5rem;
-  color: var(--cyan);
-  font-size: 0.6rem;
-  letter-spacing: 0.22em;
-}
-
-.brand-block h1 {
+.brand-block {
   margin: 0;
   font-size: clamp(1.35rem, 2.2vw, 2rem);
   letter-spacing: 0.14em;
@@ -155,6 +145,8 @@ input:focus-visible {
 
 .status-button {
   min-width: 14rem;
+  background: rgba(255, 136, 120, 0.14);
+  border-color: rgba(255, 136, 120, 0.58);
 }
 
 .status-button--connected {
@@ -179,7 +171,7 @@ input:focus-visible {
   display: grid;
   grid-template-columns: 17rem minmax(0, 1fr) 19rem;
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .pixel-panel {
@@ -189,15 +181,18 @@ input:focus-visible {
 }
 
 .game-sidebar,
-.cabinet,
 .cube-sidebar {
   min-height: 0;
-  padding: 1rem;
+  padding: 0.15rem 0;
+}
+
+.cabinet {
+  min-height: 100%;
 }
 
 .section-label {
   margin-bottom: 0.9rem;
-  color: var(--cyan);
+  color: var(--game-accent, var(--cyan));
   font-size: 0.62rem;
   letter-spacing: 0.2em;
 }
@@ -216,9 +211,10 @@ input:focus-visible {
   flex-direction: column;
   text-align: left;
   min-height: 0;
-  padding: 0.85rem 0.95rem 0.85rem 1.1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.08);
+  padding: 0.85rem 0 0.85rem 1rem;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .game-sidebar__item::before {
@@ -244,11 +240,9 @@ input:focus-visible {
 
 .game-sidebar__item--active,
 .game-sidebar__item:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--game-accent, var(--cyan)) 55%,
-    white 12%
-  );
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
 }
 
 .game-sidebar__item--active::before,
@@ -257,15 +251,21 @@ input:focus-visible {
 }
 
 .cabinet {
-  padding: 0.75rem;
+  display: flex;
 }
 
 .cabinet__screen {
   position: relative;
-  min-height: 42rem;
+  min-height: calc(100vh - 7.75rem);
+  width: 100%;
   padding: 0.75rem;
   background: var(--surface-strong);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--game-accent, var(--cyan)) 28%,
+      rgba(255, 255, 255, 0.1)
+    );
 }
 
 .cabinet__screen--offline {
@@ -274,18 +274,23 @@ input:focus-visible {
 
 .cabinet__viewport {
   position: relative;
-  min-height: 39rem;
+  min-height: 100%;
   display: flex;
   align-items: stretch;
   justify-content: center;
   overflow: hidden;
-  padding: 1rem;
+  padding: 1.2rem;
   background: radial-gradient(
       circle at center,
       rgba(108, 255, 236, 0.08),
       transparent 54%
     ), linear-gradient(180deg, rgba(11, 16, 25, 0.96), rgba(5, 7, 11, 0.98));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--game-accent, var(--cyan)) 18%,
+      rgba(255, 255, 255, 0.08)
+    );
 }
 
 .cabinet__viewport::after {
@@ -343,7 +348,7 @@ input:focus-visible {
 .cube-sidebar__orientation span {
   display: block;
   margin-bottom: 0.55rem;
-  color: var(--cyan);
+  color: var(--game-accent, var(--cyan));
   font-size: 0.62rem;
   letter-spacing: 0.18em;
 }
@@ -384,30 +389,6 @@ input:focus-visible {
   letter-spacing: 0.14em;
 }
 
-.signal-strip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-}
-
-.signal-strip > div {
-  padding: 0.2rem 0;
-}
-
-.signal-strip span {
-  display: block;
-  margin-bottom: 0.35rem;
-  color: var(--muted);
-  font-size: 0.54rem;
-  letter-spacing: 0.18em;
-}
-
-.signal-strip strong {
-  display: block;
-  font-size: 1.18rem;
-  line-height: 1;
-}
-
 .control-list__item {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -433,6 +414,8 @@ input:focus-visible {
   margin-bottom: 0.28rem;
   font-size: 0.78rem;
   letter-spacing: 0.16em;
+  color: var(--game-accent, var(--cyan));
+  text-transform: uppercase;
 }
 
 .control-list__item p {
@@ -466,6 +449,7 @@ input:focus-visible {
 
 .game-panel__title {
   margin: 0;
+  color: var(--game-accent, var(--text));
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   letter-spacing: 0.14em;
   line-height: 1;
@@ -713,8 +697,8 @@ input:focus-visible {
   inset: 0;
   transform: translateZ(0);
   background: linear-gradient(180deg, #0f141d, #090c13);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
 }
 
 .control-cube__face {
@@ -724,7 +708,7 @@ input:focus-visible {
   place-items: center;
   padding: 0.42rem;
   background: rgba(10, 13, 20, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
@@ -748,7 +732,7 @@ input:focus-visible {
   right: 0.45rem;
   color: rgba(255, 255, 255, 0.48);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.52rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
 }
 
@@ -769,7 +753,7 @@ input:focus-visible {
   background: rgba(5, 7, 11, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.48rem;
+  font-size: 0.58rem;
   letter-spacing: 0.08em;
 }
 
@@ -812,8 +796,8 @@ input:focus-visible {
 }
 
 .connect-modal__header h2 {
-  margin: 0.2rem 0 0;
-  font-size: 0.92rem;
+  margin: 0;
+  font-size: 1.08rem;
   letter-spacing: 0.16em;
 }
 
@@ -965,10 +949,6 @@ input:focus-visible {
   }
 
   .game-panel__body {
-    grid-template-columns: 1fr;
-  }
-
-  .signal-strip {
     grid-template-columns: 1fr;
   }
 
