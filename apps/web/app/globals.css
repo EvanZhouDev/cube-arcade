@@ -337,11 +337,21 @@ input:focus-visible {
 }
 
 .cabinet__overlay-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 21rem;
   min-height: 5.6rem;
   padding: 1.35rem 2.25rem;
   font-size: 2rem;
   letter-spacing: 0.12em;
+}
+
+.cabinet__overlay-button--loading {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+  color: rgba(242, 246, 255, 0.9);
 }
 
 .cube-sidebar__visual {
@@ -853,10 +863,32 @@ input:focus-visible {
 }
 
 .connect-modal__primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: min(100%, 22rem);
   min-height: 5rem;
   padding: 1.2rem 1.8rem;
   font-size: 1.3rem;
+}
+
+.connect-modal__primary-action--loading {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+  color: rgba(242, 246, 255, 0.9);
+}
+
+.connect-modal__hero--compact {
+  align-items: stretch;
+  margin-top: 1rem;
+}
+
+.connect-modal__primary-action--compact {
+  width: 100%;
+  min-width: 0;
+  min-height: 4rem;
+  font-size: 1rem;
 }
 
 .connect-modal__mac-block {
@@ -941,7 +973,10 @@ input:focus-visible {
 }
 
 .connect-modal__link {
+  position: relative;
+  z-index: 2;
   color: var(--text);
+  pointer-events: auto;
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 0.16em;
@@ -971,10 +1006,60 @@ input:focus-visible {
   gap: 0.45rem;
 }
 
+.connect-modal__saved-header h3 {
+  margin: 0 0 0.9rem;
+  color: rgba(242, 246, 255, 0.82);
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+}
+
 .field-label {
   color: rgba(242, 246, 255, 0.82);
   font-size: 0.58rem;
   letter-spacing: 0.18em;
+}
+
+.saved-mac-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.saved-mac-list__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.saved-mac-list__item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.saved-mac-list__item strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text);
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+}
+
+.saved-mac-list__item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.saved-mac-list__remove {
+  min-width: 7.2rem;
 }
 
 .text-input {

@@ -77,3 +77,50 @@ test("debug simulator controls stay hidden on the main arcade route", async ({
     0,
   );
 });
+
+test("connected status button opens cube management panel", async ({
+  page,
+}) => {
+  await page.goto("/?debug=1");
+
+  await page.getByRole("button", { name: "USE SIMULATOR" }).click();
+  await page.getByTestId("status-button").click();
+
+  await expect(page.getByTestId("connection-panel")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "SAVED MAC ADDRESSES" }),
+  ).toBeVisible();
+  await expect(page.getByText("No saved MAC addresses yet.")).toBeVisible();
+
+  await page.getByRole("button", { name: "DISCONNECT" }).click();
+  await expect(page.getByTestId("connect-cube-button")).toBeVisible();
+});
+
+test("connect button shows connecting state while bluetooth request is pending", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "bluetooth", {
+      configurable: true,
+      value: {
+        requestDevice: () =>
+          new Promise((_resolve, reject) => {
+            window.setTimeout(() => {
+              reject(new Error("Mock connect failure"));
+            }, 300);
+          }),
+      },
+    });
+  });
+
+  await page.goto("/");
+  await page.getByTestId("connect-cube-button").click();
+
+  await expect(page.getByTestId("connect-cube-loading")).toBeVisible();
+  await expect(page.getByTestId("connect-cube-button")).toHaveCount(0);
+  await expect(
+    page.getByText("Connection Failed. Please try again."),
+  ).toBeVisible({
+    timeout: 2000,
+  });
+});

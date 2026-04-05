@@ -35,6 +35,7 @@ const SIMULATOR_MOVES = [
 ] as const;
 
 const GAN_MAC_STORAGE_KEY = "cube-arcade.gan-mac-addresses";
+const BLUETOOTH_INTERNALS_URL = "chrome://bluetooth-internals/#devices";
 const TURN_SYMBOL = {
   clockwise: "↻",
   counterclockwise: "↺",
@@ -79,6 +80,8 @@ export default function Page() {
   const lastFrameRef = useRef<number | null>(null);
 
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnectionPanelOpen, setIsConnectionPanelOpen] = useState(false);
   const [isHoldGuideOpen, setIsHoldGuideOpen] = useState(false);
   const [isMacModalOpen, setIsMacModalOpen] = useState(false);
   const [savedMacAddresses, setSavedMacAddresses] = useState<
@@ -129,7 +132,9 @@ export default function Page() {
   useEffect(() => {
     if (cubeState.connected) {
       setIsMacModalOpen(false);
+      return;
     }
+    setIsConnectionPanelOpen(false);
   }, [cubeState.connected]);
 
   useEffect(() => {
@@ -152,30 +157,38 @@ export default function Page() {
   const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
 
   async function handleConnectCube() {
-    const isMacRetry = isMacModalOpen;
-    setIsMacModalOpen(false);
-    await connectHardware({
-      knownMacAddressesByDeviceName: savedMacAddresses,
-      manualMacAddress: manualMacAddressForAttempt(
-        isMacRetry,
-        manualMacAddress,
-      ),
-    });
-
-    if (useArcadeStore.getState().session) {
-      setIsMacModalOpen(false);
+    if (isConnecting) {
       return;
     }
+    const isMacRetry = isMacModalOpen;
+    setIsConnecting(true);
+    setIsMacModalOpen(false);
+    try {
+      await connectHardware({
+        knownMacAddressesByDeviceName: savedMacAddresses,
+        manualMacAddress: manualMacAddressForAttempt(
+          isMacRetry,
+          manualMacAddress,
+        ),
+      });
 
-    const state = useArcadeStore.getState();
-    if (
-      shouldOpenMacAddressModal(
-        state.error,
-        state.selectedDeviceName,
-        savedMacAddresses,
-      )
-    ) {
-      setIsMacModalOpen(true);
+      if (useArcadeStore.getState().session) {
+        setIsMacModalOpen(false);
+        return;
+      }
+
+      const state = useArcadeStore.getState();
+      if (
+        shouldOpenMacAddressModal(
+          state.error,
+          state.selectedDeviceName,
+          savedMacAddresses,
+        )
+      ) {
+        setIsMacModalOpen(true);
+      }
+    } finally {
+      setIsConnecting(false);
     }
   }
 
@@ -194,6 +207,17 @@ export default function Page() {
       ...current,
       [selectedDeviceName]: value,
     }));
+  }
+
+  function removeSavedMacAddress(deviceName: string) {
+    setSavedMacAddresses((current) => {
+      const next = { ...current };
+      delete next[deviceName];
+      return next;
+    });
+    if (selectedDeviceName === deviceName) {
+      setManualMacAddress("");
+    }
   }
 
   return (
@@ -243,14 +267,23 @@ export default function Page() {
               {!cubeState.connected ? (
                 <div className="cabinet__overlay">
                   <p>NO CUBE LINK</p>
-                  <button
-                    className="cabinet__overlay-button"
-                    data-testid="connect-cube-button"
-                    onClick={() => void handleConnectCube()}
-                    type="button"
-                  >
-                    CONNECT CUBE
-                  </button>
+                  {isConnecting ? (
+                    <div
+                      className="cabinet__overlay-button cabinet__overlay-button--loading"
+                      data-testid="connect-cube-loading"
+                    >
+                      CONNECTING...
+                    </div>
+                  ) : (
+                    <button
+                      className="cabinet__overlay-button"
+                      data-testid="connect-cube-button"
+                      onClick={() => void handleConnectCube()}
+                      type="button"
+                    >
+                      CONNECT CUBE
+                    </button>
+                  )}
                   <output className="cabinet__overlay-feedback">
                     {!cubeState.connected && error && !isMacModalOpen
                       ? "Connection Failed. Please try again."
@@ -272,7 +305,9 @@ export default function Page() {
               })}
               data-testid="status-button"
               onClick={() => {
-                if (!cubeState.connected) {
+                if (cubeState.connected) {
+                  setIsConnectionPanelOpen(true);
+                } else if (!isConnecting) {
                   void handleConnectCube();
                 }
               }}
@@ -340,6 +375,7 @@ export default function Page() {
       {isMacModalOpen ? (
         <MacAddressModal
           deviceName={selectedDeviceName}
+          isConnecting={isConnecting}
           manualMacAddress={manualMacAddress}
           onBackdrop={() => {
             clearPendingBrowserSmartcubeDevice();
@@ -352,6 +388,21 @@ export default function Page() {
             setShowMacAddress((current) => !current);
           }}
           showMacAddress={showMacAddress}
+        />
+      ) : null}
+
+      {isConnectionPanelOpen ? (
+        <ConnectionPanelModal
+          cubeName={cubeState.name}
+          onBackdrop={() => {
+            setIsConnectionPanelOpen(false);
+          }}
+          onDisconnect={async () => {
+            setIsConnectionPanelOpen(false);
+            await disconnect();
+          }}
+          onRemoveSavedMacAddress={removeSavedMacAddress}
+          savedMacAddresses={savedMacAddresses}
         />
       ) : null}
 
@@ -411,6 +462,7 @@ function describeAction(command: string) {
 
 function MacAddressModal({
   deviceName,
+  isConnecting,
   manualMacAddress,
   onBackdrop,
   onConnectCube,
@@ -420,6 +472,7 @@ function MacAddressModal({
   showMacAddress,
 }: {
   deviceName: string | null;
+  isConnecting: boolean;
   manualMacAddress: string;
   onBackdrop: () => void;
   onConnectCube: () => Promise<void>;
@@ -456,11 +509,25 @@ function MacAddressModal({
             Go to{" "}
             <a
               className="connect-modal__link"
-              href="chrome://bluetooth-internals/#devices"
+              href={BLUETOOTH_INTERNALS_URL}
+              onClick={(event) => {
+                event.preventDefault();
+                if (typeof window === "undefined") {
+                  return;
+                }
+                const opened = window.open(
+                  BLUETOOTH_INTERNALS_URL,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+                if (!opened) {
+                  window.location.assign(BLUETOOTH_INTERNALS_URL);
+                }
+              }}
               target="_blank"
               rel="noreferrer"
             >
-              chrome://bluetooth-internals/#devices
+              {BLUETOOTH_INTERNALS_URL}
             </a>{" "}
             to copy the MAC Address of your device
             {deviceName ? ` (${deviceName})` : ""}. Then, paste it here and try
@@ -505,14 +572,115 @@ function MacAddressModal({
           </div>
 
           <div className="connect-modal__hero">
-            <button
-              className="connect-modal__primary-action"
-              data-testid="connect-cube-modal-button"
-              onClick={() => void onConnectCube()}
-              type="button"
-            >
-              TRY AGAIN
-            </button>
+            {isConnecting ? (
+              <div
+                className="connect-modal__primary-action connect-modal__primary-action--loading"
+                data-testid="connect-cube-modal-loading"
+              >
+                CONNECTING...
+              </div>
+            ) : (
+              <button
+                className="connect-modal__primary-action"
+                data-testid="connect-cube-modal-button"
+                onClick={() => void onConnectCube()}
+                type="button"
+              >
+                TRY AGAIN
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+    </dialog>
+  );
+}
+
+function ConnectionPanelModal({
+  cubeName,
+  onBackdrop,
+  onDisconnect,
+  onRemoveSavedMacAddress,
+  savedMacAddresses,
+}: {
+  cubeName: string;
+  onBackdrop: () => void;
+  onDisconnect: () => Promise<void>;
+  onRemoveSavedMacAddress: (deviceName: string) => void;
+  savedMacAddresses: Record<string, string>;
+}) {
+  const savedEntries = Object.entries(savedMacAddresses).sort(
+    ([left], [right]) => left.localeCompare(right),
+  );
+
+  return (
+    <dialog
+      className="modal-backdrop"
+      data-testid="connection-panel"
+      onCancel={(event) => {
+        event.preventDefault();
+        onBackdrop();
+      }}
+      open
+    >
+      <button
+        aria-label="Close cube connection panel"
+        className="modal-backdrop__scrim"
+        onClick={onBackdrop}
+        type="button"
+      />
+      <section className="pixel-panel connect-modal">
+        <div className="connect-modal__header">
+          <h2>CUBE CONNECTED</h2>
+          <button className="ghost-button" onClick={onBackdrop} type="button">
+            CLOSE
+          </button>
+        </div>
+
+        <div className="connect-modal__body">
+          <div className="connect-modal__panel">
+            <p className="connect-modal__lede">
+              Active cube: <strong>{cubeName}</strong>
+            </p>
+            <div className="connect-modal__hero connect-modal__hero--compact">
+              <button
+                className="connect-modal__primary-action connect-modal__primary-action--compact"
+                onClick={() => void onDisconnect()}
+                type="button"
+              >
+                DISCONNECT
+              </button>
+            </div>
+          </div>
+
+          <div className="connect-modal__panel">
+            <div className="connect-modal__saved-header">
+              <h3>SAVED MAC ADDRESSES</h3>
+            </div>
+
+            {savedEntries.length > 0 ? (
+              <div className="saved-mac-list">
+                {savedEntries.map(([deviceName, macAddress]) => (
+                  <div className="saved-mac-list__item" key={deviceName}>
+                    <div>
+                      <strong>{deviceName}</strong>
+                      <p>{macAddress}</p>
+                    </div>
+                    <button
+                      className="ghost-button saved-mac-list__remove"
+                      onClick={() => {
+                        onRemoveSavedMacAddress(deviceName);
+                      }}
+                      type="button"
+                    >
+                      REMOVE
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="connect-modal__lede">No saved MAC addresses yet.</p>
+            )}
           </div>
         </div>
       </section>
