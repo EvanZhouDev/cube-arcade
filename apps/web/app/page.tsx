@@ -27,6 +27,11 @@ const SIMULATOR_MOVES = [
 ] as const;
 
 const GAN_MAC_STORAGE_KEY = "cube-arcade.gan-mac-address";
+const TURN_SYMBOL = {
+  clockwise: "↻",
+  counterclockwise: "↺",
+  double: "⟲",
+} as const;
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -228,21 +233,22 @@ export default function Page() {
             </div>
 
             <div className="section-label cube-sidebar__controls-title">
-              CONTROLS (WHITE TOP, GREEN FRONT)
+              CONTROLS
             </div>
             <div className="control-list">
               {bindings.map((binding) => {
-                const gameControl = meta.controls.find(
-                  (control) => control.command === binding.command,
-                );
                 return (
                   <div className="control-list__item" key={binding.move}>
                     <div
                       className="control-list__swatch"
                       style={{ backgroundColor: binding.faceColor }}
-                    />
+                    >
+                      <span>{TURN_SYMBOL[binding.turn]}</span>
+                    </div>
                     <div>
-                      <strong>{gameControl?.label ?? binding.command}</strong>
+                      <strong style={{ color: binding.faceColor }}>
+                        {describeAction(binding.command)}
+                      </strong>
                       <p>{describeBinding(binding.face, binding.turn)}</p>
                     </div>
                   </div>
@@ -331,6 +337,27 @@ function describeBinding(
   } as const;
 
   return `${faceNames[face]} ${turnNames[turn]}`;
+}
+
+function describeAction(command: string) {
+  switch (command) {
+    case "left":
+      return "MOVE LEFT";
+    case "right":
+      return "MOVE RIGHT";
+    case "up":
+      return "MOVE UP";
+    case "down":
+      return "MOVE DOWN";
+    case "primary":
+      return "PRIMARY";
+    case "secondary":
+      return "SECONDARY";
+    case "pause":
+      return "PAUSE";
+    default:
+      return command.toUpperCase();
+  }
 }
 
 function ConnectModal({
