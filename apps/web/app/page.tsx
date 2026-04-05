@@ -67,6 +67,7 @@ export default function Page() {
 
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [isHoldGuideOpen, setIsHoldGuideOpen] = useState(false);
   const [manualMacAddress, setManualMacAddress] = useState("");
   const [showMacAddress, setShowMacAddress] = useState(false);
   const [showMacTools, setShowMacTools] = useState(false);
@@ -227,7 +228,7 @@ export default function Page() {
             </div>
 
             <div className="section-label cube-sidebar__controls-title">
-              CONTROLS
+              CONTROLS (WHITE TOP, GREEN FRONT)
             </div>
             <div className="control-list">
               {bindings.map((binding) => {
@@ -242,14 +243,21 @@ export default function Page() {
                     />
                     <div>
                       <strong>{gameControl?.label ?? binding.command}</strong>
-                      <p>
-                        {binding.move} on {binding.faceLabel.toUpperCase()}
-                      </p>
+                      <p>{describeBinding(binding.face, binding.turn)}</p>
                     </div>
                   </div>
                 );
               })}
             </div>
+            <button
+              className="ghost-button hold-guide-button"
+              onClick={() => {
+                setIsHoldGuideOpen(true);
+              }}
+              type="button"
+            >
+              HOW TO HOLD THE CUBE
+            </button>
           </aside>
         </div>
       </div>
@@ -291,8 +299,38 @@ export default function Page() {
           showMacTools={showMacTools}
         />
       ) : null}
+
+      {isHoldGuideOpen ? (
+        <HoldGuideModal
+          onClose={() => {
+            setIsHoldGuideOpen(false);
+          }}
+        />
+      ) : null}
     </main>
   );
+}
+
+function describeBinding(
+  face: "B" | "D" | "F" | "L" | "R" | "U",
+  turn: "clockwise" | "counterclockwise" | "double",
+) {
+  const faceNames = {
+    B: "BLUE FACE",
+    D: "YELLOW FACE",
+    F: "GREEN FACE",
+    L: "ORANGE FACE",
+    R: "RED FACE",
+    U: "WHITE FACE",
+  } as const;
+
+  const turnNames = {
+    clockwise: "CW",
+    counterclockwise: "CCW",
+    double: "DOUBLE TURN",
+  } as const;
+
+  return `${faceNames[face]} ${turnNames[turn]}`;
 }
 
 function ConnectModal({
@@ -479,6 +517,47 @@ function ConnectModal({
         </div>
       </section>
     </dialog>
+  );
+}
+
+function HoldGuideModal({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  return (
+    <div className="modal-backdrop" onMouseDown={onClose} role="presentation">
+      <section
+        className="pixel-panel connect-modal hold-guide-modal"
+        onMouseDown={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        <div className="connect-modal__header">
+          <h2>HOW TO HOLD THE CUBE</h2>
+          <button className="ghost-button" onClick={onClose} type="button">
+            CLOSE
+          </button>
+        </div>
+
+        <div className="connect-modal__panel hold-guide-modal__panel">
+          <p className="connect-modal__lede">
+            Hold the cube with the white face on top and the green face pointing
+            toward you.
+          </p>
+          <div className="hold-guide-modal__grid">
+            <div>
+              <span>TOP</span>
+              <strong>WHITE FACE</strong>
+            </div>
+            <div>
+              <span>FRONT</span>
+              <strong>GREEN FACE</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 

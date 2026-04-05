@@ -380,6 +380,10 @@ input:focus-visible {
   line-height: 1.08;
 }
 
+.hold-guide-button {
+  margin-top: 0.45rem;
+}
+
 .game-view {
   width: 100%;
 }
@@ -792,6 +796,40 @@ input:focus-visible {
   padding: 0.95rem;
   background: var(--surface-strong);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hold-guide-modal {
+  width: min(100%, 30rem);
+}
+
+.hold-guide-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.hold-guide-modal__grid div {
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hold-guide-modal__grid span {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--game-accent, var(--cyan));
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.hold-guide-modal__grid strong {
+  display: block;
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
 }
 
 .connect-modal__lede,
