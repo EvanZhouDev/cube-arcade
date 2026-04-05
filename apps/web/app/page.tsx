@@ -4,7 +4,7 @@ import { ARCADE_GAME_IDS } from "@cube-arcade/game-engine";
 import { getBindings, normalizeSmartcubeMac } from "@cube-arcade/smartcube";
 import { ControlCube, GameView } from "@cube-arcade/ui";
 import { useCompletion } from "ai/react";
-import { Gamepad2, RefreshCw, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Gamepad2, RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useArcadeStore } from "../src/lib/arcade-store";
@@ -56,6 +56,7 @@ export default function Page() {
   const lastFrameRef = useRef<number | null>(null);
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
   const [manualMacAddress, setManualMacAddress] = useState("");
+  const [showMacAddress, setShowMacAddress] = useState(false);
 
   const {
     complete,
@@ -190,24 +191,41 @@ export default function Page() {
             <label className="field-label" htmlFor="cube-mac-address">
               Cube MAC Address
             </label>
-            <input
-              className="text-input"
-              data-testid="cube-mac-input"
-              id="cube-mac-address"
-              onBlur={() => {
-                const normalized = normalizeSmartcubeMac(manualMacAddress);
-                if (normalized) {
-                  setManualMacAddress(normalized);
+            <div className="input-with-action">
+              <input
+                autoComplete="off"
+                className="text-input"
+                data-testid="cube-mac-input"
+                id="cube-mac-address"
+                onBlur={() => {
+                  const normalized = normalizeSmartcubeMac(manualMacAddress);
+                  if (normalized) {
+                    setManualMacAddress(normalized);
+                  }
+                }}
+                onChange={(event) => {
+                  setManualMacAddress(event.target.value);
+                }}
+                placeholder="Optional for GAN path, e.g. CC:A3:00:12:34:56"
+                spellCheck={false}
+                type={showMacAddress ? "text" : "password"}
+                value={manualMacAddress}
+              />
+              <button
+                aria-label={
+                  showMacAddress ? "Hide MAC address" : "Show MAC address"
                 }
-              }}
-              onChange={(event) => {
-                setManualMacAddress(event.target.value);
-              }}
-              placeholder="Optional for GAN path, e.g. CC:A3:00:12:34:56"
-              spellCheck={false}
-              type="text"
-              value={manualMacAddress}
-            />
+                className="ghost-button input-with-action__button"
+                data-testid="cube-mac-toggle"
+                onClick={() => {
+                  setShowMacAddress((current) => !current);
+                }}
+                type="button"
+              >
+                {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showMacAddress ? "Hide" : "Show"}
+              </button>
+            </div>
             <p className="field-caption">
               Useful when the browser cannot recover the cube MAC from
               advertisements. The GAN path accepts either
