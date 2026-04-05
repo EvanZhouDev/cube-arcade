@@ -318,6 +318,15 @@ input:focus-visible {
   text-align: center;
 }
 
+.cabinet__overlay-feedback {
+  min-height: 1.4rem;
+  color: #ff7b7b;
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
 .cabinet__overlay p {
   margin: 0;
   color: rgba(242, 246, 255, 0.82);
@@ -848,6 +857,16 @@ input:focus-visible {
   letter-spacing: 0.16em;
 }
 
+.connect-modal__panel {
+  padding: 0.95rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.connect-modal--mac {
+  width: min(100%, 44rem);
+}
+
 .hold-guide-modal {
   width: min(100%, 30rem);
 }
@@ -893,6 +912,20 @@ input:focus-visible {
 
 .connect-modal__lede--alert {
   color: var(--text);
+}
+
+.connect-modal__lede--mac {
+  max-width: 36rem;
+}
+
+.connect-modal__link {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.connect-modal__link:hover {
+  color: color-mix(in srgb, var(--text) 82%, var(--game-accent, var(--cyan)));
 }
 
 .connect-modal__debug {

@@ -4,7 +4,7 @@ import { ARCADE_GAMES } from "@cube-arcade/game-engine";
 import { getBindings, normalizeSmartcubeMac } from "@cube-arcade/smartcube";
 import { ControlCube, GameView } from "@cube-arcade/ui";
 import { clsx } from "clsx";
-import { Eye, EyeOff, RefreshCw } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import {
   type CSSProperties,
@@ -68,9 +68,8 @@ export default function Page() {
   const lastFrameRef = useRef<number | null>(null);
 
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isHoldGuideOpen, setIsHoldGuideOpen] = useState(false);
-  const [needsMacAddress, setNeedsMacAddress] = useState(false);
+  const [isMacModalOpen, setIsMacModalOpen] = useState(false);
   const [manualMacAddress, setManualMacAddress] = useState("");
   const [showMacAddress, setShowMacAddress] = useState(false);
 
@@ -100,8 +99,7 @@ export default function Page() {
 
   useEffect(() => {
     if (cubeState.connected) {
-      setIsConnectModalOpen(false);
-      setNeedsMacAddress(false);
+      setIsMacModalOpen(false);
     }
   }, [cubeState.connected]);
 
@@ -125,12 +123,11 @@ export default function Page() {
   const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
 
   async function handleConnectCube() {
-    setNeedsMacAddress(false);
+    setIsMacModalOpen(false);
     await connectHardware(manualMacAddress);
 
     if (useArcadeStore.getState().session) {
-      setIsConnectModalOpen(false);
-      setNeedsMacAddress(false);
+      setIsMacModalOpen(false);
       return;
     }
 
@@ -139,14 +136,14 @@ export default function Page() {
       errorMessage.includes("MAC address") ||
       errorMessage.includes("Unable to determine cube MAC address")
     ) {
-      setNeedsMacAddress(true);
+      setIsMacModalOpen(true);
     }
   }
 
   async function handleSimulatorConnect() {
     await connectSimulator();
     if (useArcadeStore.getState().session) {
-      setIsConnectModalOpen(false);
+      setIsMacModalOpen(false);
     }
   }
 
@@ -200,13 +197,16 @@ export default function Page() {
                   <button
                     className="cabinet__overlay-button"
                     data-testid="connect-cube-button"
-                    onClick={() => {
-                      setIsConnectModalOpen(true);
-                    }}
+                    onClick={() => void handleConnectCube()}
                     type="button"
                   >
                     CONNECT CUBE
                   </button>
+                  <output className="cabinet__overlay-feedback">
+                    {!cubeState.connected && error && !isMacModalOpen
+                      ? "Connection Failed. Please try again."
+                      : null}
+                  </output>
                 </div>
               ) : null}
             </div>
@@ -223,7 +223,9 @@ export default function Page() {
               })}
               data-testid="status-button"
               onClick={() => {
-                setIsConnectModalOpen(true);
+                if (!cubeState.connected) {
+                  void handleConnectCube();
+                }
               }}
               type="button"
             >
@@ -280,30 +282,20 @@ export default function Page() {
         <DebugSimulatorDock
           enabled={simulatorEnabled}
           onMove={simulateMove}
-          onOpenConnect={() => {
-            setIsConnectModalOpen(true);
+          onEnableSimulator={() => {
+            void handleSimulatorConnect();
           }}
         />
       ) : null}
 
-      {isConnectModalOpen ? (
-        <ConnectModal
-          bluetoothAvailable={bluetoothAvailable}
-          connected={cubeState.connected}
-          cubeName={cubeState.name}
-          error={error}
-          isDebugMode={isDebugMode}
+      {isMacModalOpen ? (
+        <MacAddressModal
           manualMacAddress={manualMacAddress}
-          needsMacAddress={needsMacAddress}
           onBackdrop={() => {
-            setIsConnectModalOpen(false);
-            setNeedsMacAddress(false);
+            setIsMacModalOpen(false);
           }}
           onConnectCube={handleConnectCube}
-          onConnectSimulator={handleSimulatorConnect}
-          onDisconnect={disconnect}
           onManualMacChange={setManualMacAddress}
-          onResync={resyncCube}
           onToggleMacAddress={() => {
             setShowMacAddress((current) => !current);
           }}
@@ -365,36 +357,18 @@ function describeAction(command: string) {
   }
 }
 
-function ConnectModal({
-  bluetoothAvailable,
-  connected,
-  cubeName,
-  error,
-  isDebugMode,
+function MacAddressModal({
   manualMacAddress,
-  needsMacAddress,
   onBackdrop,
   onConnectCube,
-  onConnectSimulator,
-  onDisconnect,
   onManualMacChange,
-  onResync,
   onToggleMacAddress,
   showMacAddress,
 }: {
-  bluetoothAvailable: boolean | null;
-  connected: boolean;
-  cubeName: string;
-  error: string | null;
-  isDebugMode: boolean;
   manualMacAddress: string;
-  needsMacAddress: boolean;
   onBackdrop: () => void;
   onConnectCube: () => Promise<void>;
-  onConnectSimulator: () => Promise<void>;
-  onDisconnect: () => Promise<void>;
   onManualMacChange: (value: string) => void;
-  onResync: () => void;
   onToggleMacAddress: () => void;
   showMacAddress: boolean;
 }) {
@@ -409,137 +383,78 @@ function ConnectModal({
       open
     >
       <button
-        aria-label="Close connect modal"
+        aria-label="Close MAC address modal"
         className="modal-backdrop__scrim"
         onClick={onBackdrop}
         type="button"
       />
-      <section className="pixel-panel connect-modal">
+      <section className="pixel-panel connect-modal connect-modal--mac">
         <div className="connect-modal__header">
-          <h2>{connected ? "CUBE CONNECTED" : "CONNECT YOUR CUBE"}</h2>
+          <h2>MAC ADDRESS</h2>
           <button className="ghost-button" onClick={onBackdrop} type="button">
             CLOSE
           </button>
         </div>
+        <div className="connect-modal__body">
+          <p className="connect-modal__lede connect-modal__lede--mac">
+            Go to{" "}
+            <a
+              className="connect-modal__link"
+              href="chrome://bluetooth-internals/#devices"
+            >
+              chrome://bluetooth-internals/#devices
+            </a>{" "}
+            to copy the MAC Address of your device. Then, paste it here and try
+            again.
+          </p>
 
-        {connected ? (
-          <div className="connect-modal__body">
-            <p className="connect-modal__lede">
-              Active link: <strong>{cubeName}</strong>
-            </p>
-            <div className="connect-modal__actions">
-              <button className="ghost-button" onClick={onResync} type="button">
-                <RefreshCw size={16} />
-                RESYNC TO SOLVED
-              </button>
+          <div className="field-stack connect-modal__mac-block">
+            <div className="input-with-action">
+              <input
+                autoComplete="off"
+                className="text-input"
+                data-testid="cube-mac-input"
+                id="cube-mac-address"
+                onBlur={() => {
+                  const normalized = normalizeSmartcubeMac(manualMacAddress);
+                  if (normalized) {
+                    onManualMacChange(normalized);
+                  }
+                }}
+                onChange={(event) => {
+                  onManualMacChange(event.target.value);
+                }}
+                placeholder="CC:A3:00:12:34:56"
+                spellCheck={false}
+                type={showMacAddress ? "text" : "password"}
+                value={manualMacAddress}
+              />
               <button
-                className="ghost-button"
-                onClick={onDisconnect}
+                aria-label={
+                  showMacAddress ? "Hide MAC address" : "Show MAC address"
+                }
+                className="ghost-button input-with-action__button"
+                data-testid="cube-mac-toggle"
+                onClick={onToggleMacAddress}
                 type="button"
               >
-                DISCONNECT
+                {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showMacAddress ? "HIDE" : "SHOW"}
               </button>
             </div>
           </div>
-        ) : (
-          <div className="connect-modal__body">
-            <div className="connect-modal__hero">
-              <button
-                className="connect-modal__primary-action"
-                data-testid="connect-cube-modal-button"
-                onClick={() => void onConnectCube()}
-                type="button"
-              >
-                {needsMacAddress ? "RETRY WITH MAC ADDRESS" : "CONNECT CUBE"}
-              </button>
-              <p className="connect-modal__lede">
-                Press connect and select your smartcube.
-              </p>
-            </div>
 
-            {needsMacAddress ? (
-              <div className="field-stack connect-modal__mac-block">
-                <label
-                  className="field-label connect-modal__mac-title"
-                  htmlFor="cube-mac-address"
-                >
-                  MAC ADDRESS
-                </label>
-                <div className="input-with-action">
-                  <input
-                    autoComplete="off"
-                    className="text-input"
-                    data-testid="cube-mac-input"
-                    id="cube-mac-address"
-                    onBlur={() => {
-                      const normalized =
-                        normalizeSmartcubeMac(manualMacAddress);
-                      if (normalized) {
-                        onManualMacChange(normalized);
-                      }
-                    }}
-                    onChange={(event) => {
-                      onManualMacChange(event.target.value);
-                    }}
-                    placeholder="CC:A3:00:12:34:56"
-                    spellCheck={false}
-                    type={showMacAddress ? "text" : "password"}
-                    value={manualMacAddress}
-                  />
-                  <button
-                    aria-label={
-                      showMacAddress ? "Hide MAC address" : "Show MAC address"
-                    }
-                    className="ghost-button input-with-action__button"
-                    data-testid="cube-mac-toggle"
-                    onClick={onToggleMacAddress}
-                    type="button"
-                  >
-                    {showMacAddress ? <EyeOff size={16} /> : <Eye size={16} />}
-                    {showMacAddress ? "HIDE" : "SHOW"}
-                  </button>
-                </div>
-                <p className="field-caption">
-                  Go to `chrome://bluetooth-internals/#devices` to copy the MAC
-                  address of your device. Then, paste it here and try again.
-                </p>
-              </div>
-            ) : null}
-
-            {isDebugMode ? (
-              <div className="connect-modal__debug">
-                <span>DEBUG</span>
-                <button
-                  className="ghost-button"
-                  data-testid="connect-simulator-button"
-                  onClick={() => void onConnectSimulator()}
-                  type="button"
-                >
-                  USE SIMULATOR
-                </button>
-              </div>
-            ) : null}
-            {bluetoothAvailable === false ? (
-              <p className="panel__warning">
-                WEB BLUETOOTH IS UNAVAILABLE IN THIS BROWSER. USE CHROMIUM OR
-                DEBUG SIMULATOR.
-              </p>
-            ) : null}
-            {error ? <p className="panel__warning">{error}</p> : null}
+          <div className="connect-modal__hero">
+            <button
+              className="connect-modal__primary-action"
+              data-testid="connect-cube-modal-button"
+              onClick={() => void onConnectCube()}
+              type="button"
+            >
+              TRY AGAIN
+            </button>
           </div>
-        )}
-
-        {connected ? (
-          <>
-            {bluetoothAvailable === false ? (
-              <p className="panel__warning">
-                WEB BLUETOOTH IS UNAVAILABLE IN THIS BROWSER. USE CHROMIUM OR
-                DEBUG SIMULATOR.
-              </p>
-            ) : null}
-            {error ? <p className="panel__warning">{error}</p> : null}
-          </>
-        ) : null}
+        </div>
       </section>
     </dialog>
   );
@@ -589,18 +504,22 @@ function HoldGuideModal({
 function DebugSimulatorDock({
   enabled,
   onMove,
-  onOpenConnect,
+  onEnableSimulator,
 }: {
   enabled: boolean;
   onMove: (move: string) => void;
-  onOpenConnect: () => void;
+  onEnableSimulator: () => void;
 }) {
   return (
     <section className="debug-dock">
       <div className="debug-dock__label">DEBUG SIM</div>
       {!enabled ? (
-        <button className="ghost-button" onClick={onOpenConnect} type="button">
-          OPEN CONNECT PANEL
+        <button
+          className="ghost-button"
+          onClick={onEnableSimulator}
+          type="button"
+        >
+          USE SIMULATOR
         </button>
       ) : (
         <div className="debug-dock__buttons">

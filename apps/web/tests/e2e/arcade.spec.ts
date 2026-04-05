@@ -6,25 +6,7 @@ test("simulator drives the arcade flow across multiple games", async ({
   await page.goto("/?debug=1");
 
   await expect(page.getByTestId("connect-cube-button")).toBeVisible();
-
-  await page.getByTestId("status-button").click();
-  await expect(page.getByTestId("connect-modal")).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "CONNECT YOUR CUBE" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("connect-cube-modal-button")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "CONNECT STANDARD" }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "CONNECT GAN FAMILY" }),
-  ).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "SHOW ADVANCED" })).toHaveCount(
-    0,
-  );
-
   await page.getByRole("button", { name: "USE SIMULATOR" }).click();
-  await expect(page.getByTestId("connect-modal")).toHaveCount(0);
   await expect(page.getByTestId("status-button")).toContainText(
     "CUBE CONNECTED",
   );
@@ -90,8 +72,7 @@ test("debug simulator controls stay hidden on the main arcade route", async ({
   const afterDrag = await cube.getAttribute("style");
   expect(afterDrag).not.toBe(beforeDrag);
 
-  await page.getByTestId("status-button").click();
-  await expect(page.getByTestId("connect-modal")).toBeVisible();
+  await expect(page.getByTestId("connect-modal")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "USE SIMULATOR" })).toHaveCount(
     0,
   );
