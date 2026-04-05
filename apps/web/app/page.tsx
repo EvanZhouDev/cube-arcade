@@ -148,30 +148,10 @@ export default function Page() {
       className="arcade-shell"
       style={{ "--game-accent": meta.accent } as CSSProperties}
     >
-      <header className="topbar">
-        <h1 className="brand-block">CUBE ARCADE</h1>
-        <button
-          className={clsx("status-button", {
-            "status-button--connected": cubeState.connected,
-          })}
-          data-testid="status-button"
-          onClick={() => {
-            setIsConnectModalOpen(true);
-          }}
-          type="button"
-        >
-          <span
-            className={clsx("status-button__light", {
-              "status-button__light--connected": cubeState.connected,
-            })}
-          />
-          <span>{statusLabel}</span>
-        </button>
-      </header>
-
       <div className="arcade-content">
         <div className="arcade-layout">
           <aside className="game-sidebar">
+            <h1 className="brand-block game-sidebar__brand">CUBE ARCADE</h1>
             <div className="game-sidebar__list">
               {ARCADE_GAMES.map((game) => (
                 <button
@@ -222,6 +202,23 @@ export default function Page() {
           </section>
 
           <aside className="cube-sidebar">
+            <button
+              className={clsx("status-button", {
+                "status-button--connected": cubeState.connected,
+              })}
+              data-testid="status-button"
+              onClick={() => {
+                setIsConnectModalOpen(true);
+              }}
+              type="button"
+            >
+              <span
+                className={clsx("status-button__light", {
+                  "status-button__light--connected": cubeState.connected,
+                })}
+              />
+              <span>{statusLabel}</span>
+            </button>
             <div
               className={clsx("cube-sidebar__visual", {
                 "cube-sidebar__visual--offline": !cubeState.connected,
