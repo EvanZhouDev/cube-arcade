@@ -73,9 +73,9 @@ export default function Page() {
   const [hasLoadedStoredMac, setHasLoadedStoredMac] = useState(false);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isHoldGuideOpen, setIsHoldGuideOpen] = useState(false);
+  const [needsMacAddress, setNeedsMacAddress] = useState(false);
   const [manualMacAddress, setManualMacAddress] = useState("");
   const [showMacAddress, setShowMacAddress] = useState(false);
-  const [showMacTools, setShowMacTools] = useState(false);
 
   useEffect(() => {
     refreshBluetoothAvailability();
@@ -104,6 +104,7 @@ export default function Page() {
   useEffect(() => {
     if (cubeState.connected) {
       setIsConnectModalOpen(false);
+      setNeedsMacAddress(false);
     }
   }, [cubeState.connected]);
 
@@ -126,17 +127,33 @@ export default function Page() {
   const simulatorEnabled = Boolean(session && "simulateMove" in session);
   const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
 
-  async function handleStandardConnect() {
-    await connectHardware();
-    if (useArcadeStore.getState().session) {
-      setIsConnectModalOpen(false);
-    }
-  }
+  async function handleConnectCube() {
+    setNeedsMacAddress(false);
 
-  async function handleGanConnect() {
-    await connectGanHardware(manualMacAddress);
+    const hasManualMac = Boolean(normalizeSmartcubeMac(manualMacAddress));
+
+    if (hasManualMac) {
+      await connectGanHardware(manualMacAddress);
+    } else {
+      await connectHardware();
+
+      if (!useArcadeStore.getState().session) {
+        await connectGanHardware();
+      }
+    }
+
     if (useArcadeStore.getState().session) {
       setIsConnectModalOpen(false);
+      setNeedsMacAddress(false);
+      return;
+    }
+
+    const errorMessage = useArcadeStore.getState().error ?? "";
+    if (
+      errorMessage.includes("MAC address") ||
+      errorMessage.includes("Unable to determine cube MAC address")
+    ) {
+      setNeedsMacAddress(true);
     }
   }
 
@@ -291,23 +308,20 @@ export default function Page() {
           error={error}
           isDebugMode={isDebugMode}
           manualMacAddress={manualMacAddress}
+          needsMacAddress={needsMacAddress}
           onBackdrop={() => {
             setIsConnectModalOpen(false);
+            setNeedsMacAddress(false);
           }}
-          onConnectGan={handleGanConnect}
+          onConnectCube={handleConnectCube}
           onConnectSimulator={handleSimulatorConnect}
-          onConnectStandard={handleStandardConnect}
           onDisconnect={disconnect}
           onManualMacChange={setManualMacAddress}
           onResync={resyncCube}
           onToggleMacAddress={() => {
             setShowMacAddress((current) => !current);
           }}
-          onToggleMacTools={() => {
-            setShowMacTools((current) => !current);
-          }}
           showMacAddress={showMacAddress}
-          showMacTools={showMacTools}
         />
       ) : null}
 
@@ -372,17 +386,15 @@ function ConnectModal({
   error,
   isDebugMode,
   manualMacAddress,
+  needsMacAddress,
   onBackdrop,
-  onConnectGan,
+  onConnectCube,
   onConnectSimulator,
-  onConnectStandard,
   onDisconnect,
   onManualMacChange,
   onResync,
   onToggleMacAddress,
-  onToggleMacTools,
   showMacAddress,
-  showMacTools,
 }: {
   bluetoothAvailable: boolean | null;
   connected: boolean;
@@ -390,17 +402,15 @@ function ConnectModal({
   error: string | null;
   isDebugMode: boolean;
   manualMacAddress: string;
+  needsMacAddress: boolean;
   onBackdrop: () => void;
-  onConnectGan: () => Promise<void>;
+  onConnectCube: () => Promise<void>;
   onConnectSimulator: () => Promise<void>;
-  onConnectStandard: () => Promise<void>;
   onDisconnect: () => Promise<void>;
   onManualMacChange: (value: string) => void;
   onResync: () => void;
   onToggleMacAddress: () => void;
-  onToggleMacTools: () => void;
   showMacAddress: boolean;
-  showMacTools: boolean;
 }) {
   return (
     <dialog
@@ -448,24 +458,21 @@ function ConnectModal({
         ) : (
           <div className="connect-modal__panel">
             <p className="connect-modal__lede">
-              Choose the hardware path that matches your cube. The browser will
-              open the Bluetooth chooser.
+              Tap connect and the app will try to detect your cube
+              automatically.
             </p>
+            {needsMacAddress ? (
+              <p className="connect-modal__lede connect-modal__lede--alert">
+                CUBE FOUND. MAC ADDRESS NEEDED TO FINISH CONNECTING.
+              </p>
+            ) : null}
             <div className="connect-modal__actions">
               <button
-                data-testid="connect-standard-button"
-                onClick={() => void onConnectStandard()}
+                data-testid="connect-cube-modal-button"
+                onClick={() => void onConnectCube()}
                 type="button"
               >
-                CONNECT STANDARD
-              </button>
-              <button
-                className="ghost-button"
-                data-testid="connect-gan-button"
-                onClick={() => void onConnectGan()}
-                type="button"
-              >
-                CONNECT GAN FAMILY
+                {needsMacAddress ? "RETRY WITH MAC" : "CONNECT CUBE"}
               </button>
             </div>
             {isDebugMode ? (
@@ -485,19 +492,10 @@ function ConnectModal({
         )}
 
         <div className="connect-modal__panel">
-          <button
-            className="ghost-button connect-modal__advanced-toggle"
-            data-testid="advanced-toggle"
-            onClick={onToggleMacTools}
-            type="button"
-          >
-            {showMacTools ? "HIDE ADVANCED" : "SHOW ADVANCED"}
-          </button>
-
-          {showMacTools ? (
+          {needsMacAddress ? (
             <div className="field-stack">
               <label className="field-label" htmlFor="cube-mac-address">
-                MANUAL GAN MAC
+                MAC ADDRESS
               </label>
               <div className="input-with-action">
                 <input
@@ -533,8 +531,8 @@ function ConnectModal({
                 </button>
               </div>
               <p className="field-caption">
-                Only needed when the browser cannot recover your GAN-family MAC
-                from advertisements.
+                Only needed when the selected cube does not broadcast its MAC
+                address automatically.
               </p>
             </div>
           ) : null}

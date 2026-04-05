@@ -9,15 +9,19 @@ test("simulator drives the arcade flow across multiple games", async ({
 
   await page.getByTestId("status-button").click();
   await expect(page.getByTestId("connect-modal")).toBeVisible();
-
-  await page.getByRole("button", { name: "SHOW ADVANCED" }).click();
-  const macInput = page.getByTestId("cube-mac-input");
-  await expect(macInput).toHaveAttribute("type", "password");
-  await macInput.fill("cc-a3-00-12-34-56");
-  await macInput.press("Tab");
-  await expect(macInput).toHaveValue("CC:A3:00:12:34:56");
-  await page.getByTestId("cube-mac-toggle").click();
-  await expect(macInput).toHaveAttribute("type", "text");
+  await expect(
+    page.getByRole("heading", { name: "CONNECT YOUR CUBE" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("connect-cube-modal-button")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "CONNECT STANDARD" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "CONNECT GAN FAMILY" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "SHOW ADVANCED" })).toHaveCount(
+    0,
+  );
 
   await page.getByRole("button", { name: "USE SIMULATOR" }).click();
   await expect(page.getByTestId("connect-modal")).toHaveCount(0);

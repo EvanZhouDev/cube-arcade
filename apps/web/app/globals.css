@@ -328,10 +328,10 @@ input:focus-visible {
 }
 
 .cabinet__overlay-button {
-  min-width: 18rem;
-  min-height: 5rem;
-  padding: 1.2rem 2rem;
-  font-size: 1.72rem;
+  min-width: 21rem;
+  min-height: 5.6rem;
+  padding: 1.35rem 2.25rem;
+  font-size: 2rem;
   letter-spacing: 0.12em;
 }
 
@@ -812,8 +812,16 @@ input:focus-visible {
 
 .connect-modal__header h2 {
   margin: 0;
+  color: var(--text);
   font-size: 1.08rem;
   letter-spacing: 0.16em;
+}
+
+.connect-modal__actions button {
+  min-height: 3.6rem;
+  min-width: 16rem;
+  padding-inline: 1.35rem;
+  font-size: 1rem;
 }
 
 .connect-modal__panel {
@@ -865,6 +873,10 @@ input:focus-visible {
   line-height: 1.08;
 }
 
+.connect-modal__lede--alert {
+  color: var(--text);
+}
+
 .connect-modal__debug {
   justify-content: space-between;
   margin-top: 0.85rem;
@@ -886,6 +898,7 @@ input:focus-visible {
 }
 
 .field-label {
+  color: rgba(242, 246, 255, 0.82);
   font-size: 0.58rem;
   letter-spacing: 0.18em;
 }
