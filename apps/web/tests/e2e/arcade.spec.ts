@@ -5,9 +5,7 @@ test("simulator drives the arcade flow across multiple games", async ({
 }) => {
   await page.goto("/?debug=1");
 
-  await expect(
-    page.getByRole("button", { name: "CONNECT CUBE" }),
-  ).toBeVisible();
+  await expect(page.getByTestId("connect-cube-button")).toBeVisible();
 
   await page.getByTestId("status-button").click();
   await expect(page.getByTestId("connect-modal")).toBeVisible();
