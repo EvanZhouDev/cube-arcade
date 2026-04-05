@@ -1,8 +1,21 @@
+import { connectGanCubeWithSelectedDevice } from "./gan-selected-device";
 import { SessionCore } from "./session";
 import type { Quaternion, SmartcubeMove, SmartcubeSession } from "./types";
 
+type BrowserBluetoothEventListener = (event: Event) => void;
+
 interface BrowserBluetoothDevice {
+  gatt?: unknown;
   name?: string | null;
+  watchAdvertisements?: (options?: { signal?: AbortSignal }) => Promise<void>;
+  addEventListener: (
+    type: string,
+    listener: BrowserBluetoothEventListener,
+  ) => void;
+  removeEventListener: (
+    type: string,
+    listener: BrowserBluetoothEventListener,
+  ) => void;
 }
 
 interface BrowserBluetooth {
@@ -276,8 +289,9 @@ export async function connectGanBrowserSmartcube(
   }
 
   const connection = selectedDevice
-    ? await withSelectedDevice(selectedDevice, () =>
-        connectGanCube(normalizedMac ? async () => normalizedMac : undefined),
+    ? await connectGanCubeWithSelectedDevice(
+        selectedDevice as never,
+        normalizedMac ? async () => normalizedMac : undefined,
       )
     : await connectGanCube(
         normalizedMac ? async () => normalizedMac : undefined,

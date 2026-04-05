@@ -1,21 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const connectGanCubeMock = vi.fn();
-const connectSmartPuzzleMock = vi.fn();
-
 vi.mock("gan-web-bluetooth", () => ({
-  connectGanCube: connectGanCubeMock,
+  connectGanCube: vi.fn(),
 }));
 
 vi.mock("cubing/bluetooth", () => ({
-  connectSmartPuzzle: connectSmartPuzzleMock,
+  connectSmartPuzzle: vi.fn(),
 }));
 
+vi.mock("./gan-selected-device", () => ({
+  connectGanCubeWithSelectedDevice: vi.fn(),
+}));
+
+import { connectSmartPuzzle } from "cubing/bluetooth";
+import { connectGanCube } from "gan-web-bluetooth";
 import {
   clearPendingBrowserSmartcubeDevice,
   connectBrowserSmartcube,
   normalizeSmartcubeMac,
 } from "./browser";
+import { connectGanCubeWithSelectedDevice } from "./gan-selected-device";
 
 function createMockGanConnection(deviceName = "GAN356 i Carry 2") {
   return {
@@ -33,6 +37,11 @@ function createMockGanConnection(deviceName = "GAN356 i Carry 2") {
 describe("smartcube browser helpers", () => {
   const requestDevice = vi.fn();
   const originalNavigator = globalThis.navigator;
+  const connectGanCubeMock = vi.mocked(connectGanCube);
+  const connectSmartPuzzleMock = vi.mocked(connectSmartPuzzle);
+  const connectGanCubeWithSelectedDeviceMock = vi.mocked(
+    connectGanCubeWithSelectedDevice,
+  );
 
   beforeEach(() => {
     Object.defineProperty(globalThis, "navigator", {
@@ -49,6 +58,7 @@ describe("smartcube browser helpers", () => {
     clearPendingBrowserSmartcubeDevice();
     requestDevice.mockReset();
     connectGanCubeMock.mockReset();
+    connectGanCubeWithSelectedDeviceMock.mockReset();
     connectSmartPuzzleMock.mockReset();
     Object.defineProperty(globalThis, "navigator", {
       configurable: true,
@@ -76,8 +86,8 @@ describe("smartcube browser helpers", () => {
     requestDevice.mockResolvedValue({
       name: "GAN356 i Carry 2",
     });
-    connectGanCubeMock.mockImplementation(
-      async (macProvider?: () => Promise<string>) => {
+    connectGanCubeWithSelectedDeviceMock.mockImplementation(
+      async (_device: unknown, macProvider?: () => Promise<string>) => {
         expect(await macProvider?.()).toBe("CC:A3:00:12:34:56");
         return createMockGanConnection();
       },
@@ -90,19 +100,21 @@ describe("smartcube browser helpers", () => {
     });
 
     expect(requestDevice).toHaveBeenCalledTimes(1);
-    expect(connectGanCubeMock).toHaveBeenCalledTimes(1);
+    expect(connectGanCubeWithSelectedDeviceMock).toHaveBeenCalledTimes(1);
   });
 
   it("reuses the selected GAN cube for MAC retry without reopening the chooser", async () => {
     requestDevice.mockResolvedValue({
       name: "GAN356 i Carry 2",
     });
-    connectGanCubeMock
+    connectGanCubeWithSelectedDeviceMock
       .mockRejectedValueOnce(new Error("Unable to determine cube MAC address."))
-      .mockImplementationOnce(async (macProvider?: () => Promise<string>) => {
-        expect(await macProvider?.()).toBe("CC:A3:00:12:34:56");
-        return createMockGanConnection();
-      });
+      .mockImplementationOnce(
+        async (_device: unknown, macProvider?: () => Promise<string>) => {
+          expect(await macProvider?.()).toBe("CC:A3:00:12:34:56");
+          return createMockGanConnection();
+        },
+      );
 
     await expect(connectBrowserSmartcube()).rejects.toMatchObject({
       code: "mac_required",
@@ -113,6 +125,6 @@ describe("smartcube browser helpers", () => {
     });
 
     expect(requestDevice).toHaveBeenCalledTimes(1);
-    expect(connectGanCubeMock).toHaveBeenCalledTimes(2);
+    expect(connectGanCubeWithSelectedDeviceMock).toHaveBeenCalledTimes(2);
   });
 });
