@@ -1,0 +1,28 @@
+{
+  "name": "cube-arcade",
+  "private": true,
+  "packageManager": "bun@1.3.11",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:e2e": "turbo test:e2e",
+    "check": "turbo check"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.6.1",
+    "jsdom": "^27.0.0",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
+

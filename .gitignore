@@ -1,0 +1,13 @@
+.DS_Store
+.agent/
+.next/
+.turbo/
+.vercel/
+coverage/
+dist/
+node_modules/
+playwright-report/
+test-results/
+tmp/
+*.log
+

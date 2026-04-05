@@ -1,0 +1,19 @@
+{
+  "name": "@cube-arcade/testing",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "lint": "biome check src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cube-arcade/game-engine": "workspace:*",
+    "@cube-arcade/smartcube": "workspace:*"
+  }
+}
+
