@@ -181,6 +181,10 @@ input:focus-visible {
   padding: 0.15rem 0;
 }
 
+.game-sidebar {
+  justify-content: flex-start;
+}
+
 .game-sidebar__brand {
   margin-bottom: 0.35rem;
 }
@@ -201,6 +205,35 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+}
+
+.game-sidebar__footer {
+  margin-top: auto;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.game-sidebar__footer span,
+.game-sidebar__footer strong {
+  display: block;
+}
+
+.game-sidebar__footer span {
+  margin-bottom: 0.55rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.game-sidebar__footer strong {
+  color: color-mix(in srgb, var(--game-accent, var(--cyan)) 65%, var(--text));
+  font-family: var(--font-arcade), "Press Start 2P", monospace;
+  font-size: 0.84rem;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+  text-transform: uppercase;
 }
 
 .game-sidebar__item {
@@ -345,6 +378,10 @@ input:focus-visible {
   filter: grayscale(1) brightness(0.62);
 }
 
+.cube-sidebar--offline {
+  filter: grayscale(1) brightness(0.76);
+}
+
 .control-list__item {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -380,16 +417,18 @@ input:focus-visible {
 .control-list__item strong {
   display: block;
   margin-bottom: 0.28rem;
-  font-size: 0.96rem;
+  color: rgba(242, 246, 255, 0.74);
+  font-size: 1.08rem;
   letter-spacing: 0.16em;
+  line-height: 1.15;
   text-transform: uppercase;
 }
 
 .control-list__item p {
   margin: 0;
-  color: var(--muted);
-  font-size: 1rem;
-  line-height: 1.08;
+  color: rgba(171, 180, 198, 0.82);
+  font-size: 1.08rem;
+  line-height: 1.15;
 }
 
 .hold-guide-button {

@@ -172,6 +172,10 @@ export default function Page() {
                 </button>
               ))}
             </div>
+            <div className="game-sidebar__footer">
+              <span>{ARCADE_GAMES.length} GAMES READY</span>
+              <strong>{meta.name}</strong>
+            </div>
           </aside>
 
           <section className="cabinet">
@@ -206,7 +210,11 @@ export default function Page() {
             </div>
           </section>
 
-          <aside className="cube-sidebar">
+          <aside
+            className={clsx("cube-sidebar", {
+              "cube-sidebar--offline": !cubeState.connected,
+            })}
+          >
             <button
               className={clsx("status-button", {
                 "status-button--connected": cubeState.connected,
@@ -246,9 +254,7 @@ export default function Page() {
                       <span>{TURN_SYMBOL[binding.turn]}</span>
                     </div>
                     <div>
-                      <strong style={{ color: binding.faceColor }}>
-                        {describeAction(binding.command)}
-                      </strong>
+                      <strong>{describeAction(binding.command)}</strong>
                       <p>{describeBinding(binding.face, binding.turn)}</p>
                     </div>
                   </div>
