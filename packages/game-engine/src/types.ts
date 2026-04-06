@@ -8,6 +8,7 @@ import type {
 export type { CubeCommand, GameControlHint } from "@cube-arcade/game-sdk";
 
 export interface SnakeSnapshot extends BaseGameSnapshot<"snake"> {
+  awaitingStart: boolean;
   food: {
     x: number;
     y: number;

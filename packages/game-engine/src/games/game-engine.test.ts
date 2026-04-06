@@ -6,11 +6,39 @@ import { createSnakeGame } from "./snake";
 import { createTetrisGame } from "./tetris";
 
 describe("game engine", () => {
-  it("advances snake in the current direction", () => {
+  it("waits for input before snake starts moving", () => {
     const game = createSnakeGame(2);
     game.tick(160);
-    const snapshot = game.getSnapshot();
-    expect(snapshot.grid[7]?.[6]).toBe("head");
+    let snapshot = game.getSnapshot();
+
+    expect(snapshot.awaitingStart).toBe(true);
+    expect(snapshot.grid[7]?.[5]).toBe("head");
+
+    game.handleCommand("down");
+    snapshot = game.getSnapshot();
+    expect(snapshot.awaitingStart).toBe(false);
+
+    game.tick(160);
+    snapshot = game.getSnapshot();
+    expect(snapshot.grid[8]?.[5]).toBe("head");
+  });
+
+  it("restarts snake on the next turn after game over", () => {
+    const game = createSnakeGame(2);
+
+    game.handleCommand("up");
+    for (let index = 0; index < 8; index += 1) {
+      game.tick(160);
+    }
+
+    let snapshot = game.getSnapshot();
+    expect(snapshot.gameOver).toBe(true);
+
+    game.handleCommand("left");
+    snapshot = game.getSnapshot();
+    expect(snapshot.gameOver).toBe(false);
+    expect(snapshot.awaitingStart).toBe(false);
+    expect(snapshot.grid[7]?.[5]).toBe("head");
   });
 
   it("merges 2048 rows and reports the merge score", () => {

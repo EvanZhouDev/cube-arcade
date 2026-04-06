@@ -17,6 +17,7 @@ type Direction = "up" | "down" | "left" | "right";
 
 interface SnakeState {
   accumulatorMs: number;
+  awaitingStart: boolean;
   direction: Direction;
   food: Point;
   gameOver: boolean;
@@ -48,6 +49,7 @@ const META: GameMeta<"snake"> = {
 function createInitialState(seed = 1): SnakeState {
   const base: SnakeState = {
     accumulatorMs: 0,
+    awaitingStart: true,
     direction: "right",
     food: { x: 0, y: 0 },
     gameOver: false,
@@ -113,7 +115,7 @@ function isOpposite(current: Direction, next: Direction): boolean {
 }
 
 function applyStep(state: SnakeState): SnakeState {
-  if (state.gameOver || state.won) {
+  if (state.awaitingStart || state.gameOver || state.won) {
     return state;
   }
 
@@ -165,6 +167,33 @@ function applyStep(state: SnakeState): SnakeState {
   };
 }
 
+function beginRun(state: SnakeState, direction: Direction): SnakeState {
+  if (state.awaitingStart) {
+    return {
+      ...state,
+      awaitingStart: false,
+      direction,
+    };
+  }
+
+  if (state.gameOver || state.won) {
+    return {
+      ...createInitialState(state.seed + 1),
+      awaitingStart: false,
+      direction,
+    };
+  }
+
+  if (isOpposite(state.direction, direction)) {
+    return state;
+  }
+
+  return {
+    ...state,
+    direction,
+  };
+}
+
 function renderGrid(state: SnakeState): SnakeSnapshot["grid"] {
   const grid = Array.from({ length: HEIGHT }, () =>
     Array.from(
@@ -192,6 +221,7 @@ export const snakeGame = defineGame({
     return {
       getSnapshot() {
         return {
+          awaitingStart: state.awaitingStart,
           food: state.food,
           gameOver: state.gameOver,
           grid: renderGrid(state),
@@ -203,35 +233,23 @@ export const snakeGame = defineGame({
         };
       },
       handleCommand(command) {
-        if (
-          !isDirectionalCommand(command) ||
-          isOpposite(state.direction, command)
-        ) {
+        if (!isDirectionalCommand(command)) {
           return;
         }
-        state = {
-          ...state,
-          direction: command,
-        };
+        state = beginRun(state, command);
       },
       handleInput({ command }) {
-        if (
-          !isDirectionalCommand(command) ||
-          isOpposite(state.direction, command)
-        ) {
+        if (!isDirectionalCommand(command)) {
           return;
         }
-        state = {
-          ...state,
-          direction: command,
-        };
+        state = beginRun(state, command);
       },
       meta: META,
       reset(nextSeed?: number) {
         state = createInitialState(nextSeed);
       },
       tick(deltaMs: number) {
-        if (state.gameOver || state.won) {
+        if (state.awaitingStart || state.gameOver || state.won) {
           return;
         }
         let accumulatorMs = state.accumulatorMs + deltaMs;

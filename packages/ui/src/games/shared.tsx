@@ -36,7 +36,7 @@ export function GamePanel({
   className?: string;
   hud: ReactNode;
   onReset?: () => void;
-  status: string;
+  status?: string | null;
   title: string;
 }) {
   return (
@@ -44,7 +44,7 @@ export function GamePanel({
       <div className="game-panel__topline">
         <div>
           <h2 className="game-panel__title">{title}</h2>
-          <p className="game-panel__status">{status}</p>
+          {status ? <p className="game-panel__status">{status}</p> : null}
         </div>
         {onReset ? (
           <button

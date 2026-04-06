@@ -8,6 +8,7 @@ import { ControlCube } from "./control-cube";
 import { GameView } from "./game-view";
 
 const snakeSnapshot: SnakeSnapshot = {
+  awaitingStart: false,
   food: { x: 1, y: 1 },
   gameOver: false,
   grid: Array.from({ length: 14 }, (_, row) =>
@@ -58,6 +59,22 @@ describe("ui package", () => {
     );
     expect(container.querySelectorAll(".board__cell--head")).toHaveLength(1);
     expect(container.querySelectorAll(".board__cell--food")).toHaveLength(1);
+  });
+
+  it("shows the snake start prompt before the first turn", () => {
+    render(
+      <GameView
+        connected
+        paused={false}
+        snapshot={{
+          ...snakeSnapshot,
+          awaitingStart: true,
+          score: 0,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("TURN ANY FACE TO START")).toBeTruthy();
   });
 
   it("rotates the control cube when dragged", () => {

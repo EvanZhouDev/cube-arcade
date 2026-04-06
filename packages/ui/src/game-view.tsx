@@ -37,12 +37,7 @@ export function GameView({
       );
     case "snake":
       return (
-        <SnakeView
-          connected={connected}
-          onReset={onReset}
-          paused={paused}
-          snapshot={snapshot}
-        />
+        <SnakeView connected={connected} paused={paused} snapshot={snapshot} />
       );
     case "tetris":
       return (

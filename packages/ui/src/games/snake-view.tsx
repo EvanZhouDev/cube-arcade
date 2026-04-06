@@ -1,46 +1,73 @@
 import type { SnakeSnapshot } from "@cube-arcade/game-engine";
 import { clsx } from "clsx";
 
-import { GamePanel, HudChip, resolveGameStatus, toGridEntries } from "./shared";
+import { GamePanel, HudChip, toGridEntries } from "./shared";
 
 export function SnakeView({
   connected,
-  onReset,
   paused,
   snapshot,
 }: {
   connected: boolean;
-  onReset?: () => void;
   paused: boolean;
   snapshot: SnakeSnapshot;
 }) {
+  const prompt = resolveSnakePrompt({ connected, paused, snapshot });
+
   return (
     <GamePanel
       className="game-view game-view--snake"
-      hud={
-        <>
-          <HudChip label="Score" value={snapshot.score} />
-          <HudChip label="Tick" value={`${snapshot.moveBudgetMs}ms`} />
-          <HudChip label="Field" value="14x14" />
-        </>
-      }
-      onReset={onReset}
-      status={resolveGameStatus({
-        connected,
-        gameOver: snapshot.gameOver,
-        paused,
-        won: snapshot.won,
-      })}
+      hud={<HudChip label="Score" value={snapshot.score} />}
+      status={null}
       title={snapshot.name}
     >
-      <div className="board board--snake">
-        {toGridEntries(snapshot.grid).map((entry) => (
-          <div
-            className={clsx("board__cell", `board__cell--${entry.value}`)}
-            key={entry.key}
-          />
-        ))}
+      <div
+        className={clsx("snake-stage", {
+          "snake-stage--prompt": Boolean(prompt),
+        })}
+      >
+        <div className="board board--snake">
+          {toGridEntries(snapshot.grid).map((entry) => (
+            <div
+              className={clsx("board__cell", `board__cell--${entry.value}`)}
+              key={entry.key}
+            />
+          ))}
+        </div>
+        {prompt ? (
+          <div className="snake-stage__prompt">
+            <span>{prompt}</span>
+          </div>
+        ) : null}
       </div>
     </GamePanel>
   );
+}
+
+function resolveSnakePrompt({
+  connected,
+  paused,
+  snapshot,
+}: {
+  connected: boolean;
+  paused: boolean;
+  snapshot: SnakeSnapshot;
+}) {
+  if (!connected) {
+    return null;
+  }
+
+  if (paused) {
+    return "INPUT PAUSED";
+  }
+
+  if (snapshot.awaitingStart) {
+    return "TURN ANY FACE TO START";
+  }
+
+  if (snapshot.gameOver || snapshot.won) {
+    return "TURN ANY FACE TO RESTART";
+  }
+
+  return null;
 }
