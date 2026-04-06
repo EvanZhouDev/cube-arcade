@@ -12,6 +12,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import {
   type CSSProperties,
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -62,7 +63,7 @@ const DEV_KEYBOARD_MOVE_MAP: Record<
   KeyZ: "F",
 };
 
-export default function Page() {
+function PageContent() {
   const searchParams = useSearchParams();
   const isDebugMode = searchParams.get("debug") === "1";
   const isDevOverride = searchParams.get("dev") === "1";
@@ -96,6 +97,16 @@ export default function Page() {
     () => getBindings(meta.controls.map((control) => control.command)),
     [meta.controls],
   );
+  const commandLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        meta.controls.map((control) => [
+          control.command,
+          control.label.toUpperCase(),
+        ]),
+      ) as Record<string, string>,
+    [meta.controls],
+  );
 
   const animationRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number | null>(null);
@@ -112,6 +123,10 @@ export default function Page() {
   const [showMacAddress, setShowMacAddress] = useState(false);
   const simulatorEnabled = Boolean(session && "simulateMove" in session);
   const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
+  const compactCabinetGame =
+    snapshot.id === "snake" ||
+    snapshot.id === "2048" ||
+    snapshot.id === "tetris";
 
   useEffect(() => {
     refreshBluetoothAvailability();
@@ -311,9 +326,17 @@ export default function Page() {
             <div
               className={clsx("cabinet__screen", {
                 "cabinet__screen--offline": !cubeState.connected,
+                "cabinet__screen--hug-content":
+                  cubeState.connected && compactCabinetGame,
               })}
             >
-              <div className="cabinet__viewport" data-testid="game-surface">
+              <div
+                className={clsx("cabinet__viewport", {
+                  "cabinet__viewport--hug-content":
+                    cubeState.connected && compactCabinetGame,
+                })}
+                data-testid="game-surface"
+              >
                 <GameView
                   connected={cubeState.connected}
                   onReset={resetGame}
@@ -382,7 +405,11 @@ export default function Page() {
                 "cube-sidebar__visual--offline": !cubeState.connected,
               })}
             >
-              <ControlCube bindings={bindings} facelets={cubeState.facelets} />
+              <ControlCube
+                bindings={bindings}
+                commandLabels={commandLabels}
+                facelets={cubeState.facelets}
+              />
             </div>
 
             <div className="section-label cube-sidebar__controls-title">
@@ -399,7 +426,12 @@ export default function Page() {
                       <span>{TURN_SYMBOL[binding.turn]}</span>
                     </div>
                     <div>
-                      <strong>{describeAction(binding.command)}</strong>
+                      <strong>
+                        {describeAction(
+                          binding.command,
+                          commandLabels[binding.command],
+                        )}
+                      </strong>
                       <p>{describeBinding(binding.face, binding.turn)}</p>
                     </div>
                   </div>
@@ -474,6 +506,14 @@ export default function Page() {
   );
 }
 
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <PageContent />
+    </Suspense>
+  );
+}
+
 function describeBinding(
   face: "B" | "D" | "F" | "L" | "R" | "U",
   turn: "clockwise" | "counterclockwise" | "double",
@@ -496,7 +536,14 @@ function describeBinding(
   return `${faceNames[face]} ${turnNames[turn]}`;
 }
 
-function describeAction(command: string) {
+function describeAction(command: string, customLabel?: string) {
+  const fallbackLabel =
+    command === "primary"
+      ? "CW"
+      : command === "secondary"
+        ? "CCW"
+        : command.toUpperCase();
+
   switch (command) {
     case "left":
       return "MOVE LEFT";
@@ -507,9 +554,9 @@ function describeAction(command: string) {
     case "down":
       return "MOVE DOWN";
     case "primary":
-      return "PRIMARY";
+      return customLabel ?? fallbackLabel;
     case "secondary":
-      return "SECONDARY";
+      return customLabel ?? fallbackLabel;
     case "pause":
       return "PAUSE";
     default:

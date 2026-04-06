@@ -37,7 +37,18 @@ interface DragState {
 
 interface ControlCubeProps {
   bindings: CommandBinding[];
+  commandLabels?: Record<string, string>;
   facelets: string;
+}
+
+function fallbackCommandLabel(command: string): string {
+  if (command === "primary") {
+    return "CW";
+  }
+  if (command === "secondary") {
+    return "CCW";
+  }
+  return command.toUpperCase();
 }
 
 function badgePalette(sticker: string): CSSProperties {
@@ -59,10 +70,12 @@ function badgePalette(sticker: string): CSSProperties {
 
 function StickerFace({
   bindings,
+  commandLabels,
   face,
   facelets,
 }: {
   bindings: CommandBinding[];
+  commandLabels?: Record<string, string>;
   face: FaceName;
   facelets: string;
 }) {
@@ -98,7 +111,8 @@ function StickerFace({
                 {TURN_SYMBOL[binding.turn]}
               </span>
               <span className="control-cube__hint-label">
-                {binding.command.toUpperCase()}
+                {commandLabels?.[binding.command] ??
+                  fallbackCommandLabel(binding.command)}
               </span>
             </div>
           ))}
@@ -175,7 +189,11 @@ function mapStickerColor(sticker: string): string {
   }
 }
 
-export function ControlCube({ bindings, facelets }: ControlCubeProps) {
+export function ControlCube({
+  bindings,
+  commandLabels,
+  facelets,
+}: ControlCubeProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [rotation, setRotation] = useState(DEFAULT_ROTATION);
   const dragStateRef = useRef<DragState | null>(null);
@@ -242,6 +260,7 @@ export function ControlCube({ bindings, facelets }: ControlCubeProps) {
           {VISIBLE_FACES.map((face) => (
             <StickerFace
               bindings={bindings.filter((binding) => binding.face === face)}
+              commandLabels={commandLabels}
               face={face}
               facelets={facelets}
               key={face}

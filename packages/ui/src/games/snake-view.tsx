@@ -1,7 +1,7 @@
 import type { SnakeSnapshot } from "@cube-arcade/game-engine";
 import { clsx } from "clsx";
 
-import { GamePanel, HudChip, toGridEntries } from "./shared";
+import { toGridEntries } from "./shared";
 
 export function SnakeView({
   connected,
@@ -15,34 +15,34 @@ export function SnakeView({
   const prompt = resolveSnakePrompt({ connected, paused, snapshot });
 
   return (
-    <GamePanel
-      className="game-view game-view--snake"
-      hud={<HudChip label="Score" value={snapshot.score} />}
-      status={null}
-      title={snapshot.name}
-    >
+    <div className="game-panel game-view game-view--snake">
+      <div className="game-panel__topline">
+        <h2 className="game-panel__title">{snapshot.name}</h2>
+        <div className="snake-score" aria-label={`Score ${snapshot.score}`}>
+          <span>SCORE</span>
+          <strong>{String(snapshot.score).padStart(3, "0")}</strong>
+        </div>
+      </div>
       <div
         className={clsx("snake-stage", {
           "snake-stage--prompt": Boolean(prompt),
         })}
       >
-        <div className="snake-stage__screen">
-          <div className="board board--snake">
-            {toGridEntries(snapshot.grid).map((entry) => (
-              <div
-                className={clsx("board__cell", `board__cell--${entry.value}`)}
-                key={entry.key}
-              />
-            ))}
-          </div>
-          {prompt ? (
-            <div className="snake-stage__prompt">
-              <span>{prompt}</span>
-            </div>
-          ) : null}
+        <div className="board board--snake">
+          {toGridEntries(snapshot.grid).map((entry) => (
+            <div
+              className={clsx("board__cell", `board__cell--${entry.value}`)}
+              key={entry.key}
+            />
+          ))}
         </div>
+        {prompt ? (
+          <div className="snake-stage__prompt">
+            <span>{prompt}</span>
+          </div>
+        ) : null}
       </div>
-    </GamePanel>
+    </div>
   );
 }
 

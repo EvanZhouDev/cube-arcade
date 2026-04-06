@@ -31,13 +31,14 @@ describe("ui package", () => {
     const { container } = render(
       <ControlCube
         bindings={getBindings(["left", "right", "primary"])}
+        commandLabels={{ primary: "CW" }}
         facelets={SOLVED_FACELETS}
       />,
     );
 
     expect(screen.getByText("LEFT")).toBeTruthy();
     expect(screen.getByText("RIGHT")).toBeTruthy();
-    expect(screen.getByText("PRIMARY")).toBeTruthy();
+    expect(screen.getByText("CW")).toBeTruthy();
 
     const upFace = container.querySelector(".control-cube__face--U");
     const frontFace = container.querySelector(".control-cube__face--F");
@@ -81,6 +82,7 @@ describe("ui package", () => {
     const { getByTestId } = render(
       <ControlCube
         bindings={getBindings(["left", "right", "primary"])}
+        commandLabels={{ primary: "CW" }}
         facelets={SOLVED_FACELETS}
       />,
     );

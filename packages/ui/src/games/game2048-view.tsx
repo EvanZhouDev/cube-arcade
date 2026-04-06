@@ -1,56 +1,97 @@
 import type { Game2048Snapshot } from "@cube-arcade/game-engine";
 import { clsx } from "clsx";
 
-import { GamePanel, HudChip, resolveGameStatus, toGridEntries } from "./shared";
+import { toGridEntries } from "./shared";
 
 export function Game2048View({
   connected,
-  onReset,
   paused,
   snapshot,
 }: {
   connected: boolean;
-  onReset?: () => void;
   paused: boolean;
   snapshot: Game2048Snapshot;
 }) {
+  const prompt = resolve2048Prompt({ connected, paused, snapshot });
+
   return (
-    <GamePanel
-      className="game-view game-view--2048"
-      hud={
-        <>
-          <HudChip label="Score" value={snapshot.score} />
-          <HudChip label="Max Tile" value={snapshot.maxTile} />
-          <HudChip label="Board" value="4x4" />
-        </>
-      }
-      onReset={onReset}
-      status={resolveGameStatus({
-        connected,
-        gameOver: snapshot.gameOver,
-        paused,
-        won: snapshot.won,
-      })}
-      title={snapshot.name}
-    >
-      <div className="board board--2048">
-        {toGridEntries(snapshot.board).map((entry) => (
+    <div className="game-panel game-view game-view--2048">
+      <div className="game-panel__topline game-panel__topline--2048">
+        <h2 className="game-panel__title">{snapshot.name}</h2>
+        <div className="score-line score-line--2048">
           <div
-            className={clsx("board__tile", {
-              "board__tile--filled": entry.value > 0,
-            })}
-            key={entry.key}
-            style={{
-              backgroundColor:
-                entry.value > 0 ? tileColor(entry.value) : undefined,
-            }}
+            className="score-line__group"
+            aria-label={`Score ${snapshot.score}`}
           >
-            {entry.value > 0 ? entry.value : ""}
+            <span>SCORE</span>
+            <strong>{String(snapshot.score).padStart(4, "0")}</strong>
           </div>
-        ))}
+          <div
+            className="score-line__group"
+            aria-label={`Max tile ${snapshot.maxTile}`}
+          >
+            <span>MAX</span>
+            <strong>{snapshot.maxTile}</strong>
+          </div>
+        </div>
       </div>
-    </GamePanel>
+      <div
+        className={clsx("stack-stage", {
+          "stack-stage--prompt": Boolean(prompt),
+        })}
+      >
+        <div className="board board--2048">
+          {toGridEntries(snapshot.board).map((entry) => (
+            <div
+              className={clsx("board__tile", {
+                "board__tile--filled": entry.value > 0,
+              })}
+              key={entry.key}
+              style={{
+                backgroundColor:
+                  entry.value > 0 ? tileColor(entry.value) : undefined,
+              }}
+            >
+              {entry.value > 0 ? entry.value : ""}
+            </div>
+          ))}
+        </div>
+        {prompt ? (
+          <div className="stack-stage__prompt">
+            <span>{prompt}</span>
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
+}
+
+function resolve2048Prompt({
+  connected,
+  paused,
+  snapshot,
+}: {
+  connected: boolean;
+  paused: boolean;
+  snapshot: Game2048Snapshot;
+}) {
+  if (!connected) {
+    return null;
+  }
+
+  if (paused) {
+    return "INPUT PAUSED";
+  }
+
+  if (snapshot.won) {
+    return "2048 ACHIEVED";
+  }
+
+  if (snapshot.gameOver) {
+    return "NO MOVES LEFT\nTURN ANY FACE\nTO RESTART";
+  }
+
+  return null;
 }
 
 function tileColor(value: number): string {
