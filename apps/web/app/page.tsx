@@ -41,10 +41,31 @@ const TURN_SYMBOL = {
   counterclockwise: "↺",
   double: "⟲",
 } as const;
+const DEV_KEYBOARD_MOVE_MAP: Record<
+  string,
+  (typeof SIMULATOR_MOVES)[number]["move"]
+> = {
+  ArrowDown: "R'",
+  ArrowLeft: "U",
+  ArrowRight: "U'",
+  ArrowUp: "R",
+  Enter: "F",
+  KeyA: "U",
+  KeyD: "U'",
+  KeyP: "F2",
+  KeyS: "R'",
+  KeyW: "R",
+  ShiftLeft: "F'",
+  ShiftRight: "F'",
+  Space: "F",
+  KeyX: "F'",
+  KeyZ: "F",
+};
 
 export default function Page() {
   const searchParams = useSearchParams();
   const isDebugMode = searchParams.get("debug") === "1";
+  const isDevOverride = searchParams.get("dev") === "1";
 
   const bluetoothAvailable = useArcadeStore(
     (state) => state.bluetoothAvailable,
@@ -89,6 +110,8 @@ export default function Page() {
   >({});
   const [manualMacAddress, setManualMacAddress] = useState("");
   const [showMacAddress, setShowMacAddress] = useState(false);
+  const simulatorEnabled = Boolean(session && "simulateMove" in session);
+  const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
 
   useEffect(() => {
     refreshBluetoothAvailability();
@@ -153,8 +176,42 @@ export default function Page() {
     };
   }, [tick]);
 
-  const simulatorEnabled = Boolean(session && "simulateMove" in session);
-  const statusLabel = cubeState.connected ? "CUBE CONNECTED" : "DISCONNECTED";
+  useEffect(() => {
+    if (!isDevOverride || cubeState.connected || session || isConnecting) {
+      return;
+    }
+
+    void handleSimulatorConnect();
+  }, [cubeState.connected, isConnecting, isDevOverride, session]);
+
+  useEffect(() => {
+    if (!isDevOverride || !simulatorEnabled) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const move = DEV_KEYBOARD_MOVE_MAP[event.code];
+      if (!move || event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      simulateMove(move);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDevOverride, simulateMove, simulatorEnabled]);
 
   async function handleConnectCube() {
     if (isConnecting) {

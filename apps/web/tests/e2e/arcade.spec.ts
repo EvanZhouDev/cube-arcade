@@ -128,3 +128,23 @@ test("connect button shows connecting state while bluetooth request is pending",
     timeout: 2000,
   });
 });
+
+test("dev override auto-connects simulator and supports keyboard control", async ({
+  page,
+}) => {
+  await page.goto("/?dev=1");
+
+  await expect(page.getByTestId("connect-cube-button")).toHaveCount(0);
+  await expect(page.getByTestId("status-button")).toContainText(
+    "CUBE CONNECTED",
+  );
+
+  await page.getByTestId("game-card-tetris").click();
+  await page.keyboard.press("ArrowUp");
+
+  await expect
+    .poll(async () => {
+      return page.locator(".board--tetris .board__cell--filled").count();
+    })
+    .toBeGreaterThan(0);
+});
