@@ -263,6 +263,10 @@ input:focus-visible {
   align-items: flex-start;
 }
 
+.cabinet--offline {
+  align-items: flex-start;
+}
+
 .cabinet__screen {
   position: relative;
   min-height: calc(100vh - 2rem);
@@ -354,13 +358,23 @@ input:focus-visible {
   text-align: center;
 }
 
+.cabinet__overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
 .cabinet__overlay-feedback {
   min-height: 1.4rem;
-  color: #ff7b7b;
   font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   letter-spacing: 0.08em;
   line-height: 1.2;
+  color: rgba(171, 180, 198, 0.82);
+  white-space: nowrap;
+}
+
+.cabinet__overlay-feedback--error {
+  color: #ff7b7b;
 }
 
 .cabinet__overlay p {

@@ -127,6 +127,10 @@ function PageContent() {
     snapshot.id === "snake" ||
     snapshot.id === "2048" ||
     snapshot.id === "tetris";
+  const showConnectError = !cubeState.connected && Boolean(error) && !isMacModalOpen;
+  const connectOverlayMessage = showConnectError
+    ? "Connection Failed. Please try again."
+    : "Works with any smartcube.";
 
   useEffect(() => {
     refreshBluetoothAvailability();
@@ -322,18 +326,20 @@ function PageContent() {
             </div>
           </aside>
 
-          <section className="cabinet">
+          <section
+            className={clsx("cabinet", {
+              "cabinet--offline": !cubeState.connected,
+            })}
+          >
             <div
               className={clsx("cabinet__screen", {
                 "cabinet__screen--offline": !cubeState.connected,
-                "cabinet__screen--hug-content":
-                  cubeState.connected && compactCabinetGame,
+                "cabinet__screen--hug-content": compactCabinetGame,
               })}
             >
               <div
                 className={clsx("cabinet__viewport", {
-                  "cabinet__viewport--hug-content":
-                    cubeState.connected && compactCabinetGame,
+                  "cabinet__viewport--hug-content": compactCabinetGame,
                 })}
                 data-testid="game-surface"
               >
@@ -365,9 +371,13 @@ function PageContent() {
                     </button>
                   )}
                   <output className="cabinet__overlay-feedback">
-                    {!cubeState.connected && error && !isMacModalOpen
-                      ? "Connection Failed. Please try again."
-                      : null}
+                    <span
+                      className={clsx({
+                        "cabinet__overlay-feedback--error": showConnectError,
+                      })}
+                    >
+                      {connectOverlayMessage}
+                    </span>
                   </output>
                 </div>
               ) : null}
