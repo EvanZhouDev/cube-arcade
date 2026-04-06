@@ -49,8 +49,12 @@ test("debug simulator controls stay hidden on the main arcade route", async ({
 
   await page.getByRole("button", { name: "HOW TO HOLD THE CUBE" }).click();
   await expect(page.getByText("HOW TO HOLD THE CUBE")).toHaveCount(2);
-  await expect(page.getByText("WHITE FACE", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "CLOSE" }).click();
+  await expect(
+    page.getByText(
+      "We denote faces by the color of its center piece (the piece in the middle of each face). It's recommended you hold the cube with the white face on top and green face towards you.",
+    ),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "CLOSE", exact: true }).click();
 
   const cube = page.getByTestId("control-cube-body");
   const beforeDrag = await cube.getAttribute("style");

@@ -844,7 +844,7 @@ input:focus-visible {
 .connect-modal__header h2 {
   margin: 0;
   color: var(--text);
-  font-size: 1.18rem;
+  font-size: 0.98rem;
   letter-spacing: 0.16em;
 }
 
@@ -881,7 +881,7 @@ input:focus-visible {
 
 .connect-modal__hero--compact {
   align-items: stretch;
-  margin-top: 1rem;
+  margin-top: 0.35rem;
 }
 
 .connect-modal__primary-action--compact {
@@ -889,6 +889,16 @@ input:focus-visible {
   min-width: 0;
   min-height: 4rem;
   font-size: 1rem;
+}
+
+.connect-modal__primary-action--danger {
+  background: rgba(255, 139, 121, 0.12);
+  border-color: rgba(255, 139, 121, 0.56);
+  color: #ffd2ca;
+}
+
+.connect-modal__primary-action--danger:hover {
+  border-color: rgba(255, 139, 121, 0.82);
 }
 
 .connect-modal__mac-block {
@@ -899,12 +909,6 @@ input:focus-visible {
   color: var(--text);
   font-size: 1rem;
   letter-spacing: 0.16em;
-}
-
-.connect-modal__panel {
-  padding: 0.95rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .connect-modal--mac {
@@ -923,36 +927,6 @@ input:focus-visible {
 
 .hold-guide-modal {
   width: min(100%, 30rem);
-}
-
-.hold-guide-modal__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-  margin-top: 1rem;
-}
-
-.hold-guide-modal__grid div {
-  padding: 0.9rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.hold-guide-modal__grid span {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--game-accent, var(--cyan));
-  font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
-}
-
-.hold-guide-modal__grid strong {
-  display: block;
-  font-family: var(--font-arcade), "Press Start 2P", monospace;
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
 }
 
 .connect-modal__lede,
@@ -1007,7 +981,7 @@ input:focus-visible {
 }
 
 .connect-modal__saved-header h3 {
-  margin: 0 0 0.9rem;
+  margin: 0;
   color: rgba(242, 246, 255, 0.82);
   font-family: var(--font-arcade), "Press Start 2P", monospace;
   font-size: 0.62rem;
@@ -1060,6 +1034,12 @@ input:focus-visible {
 
 .saved-mac-list__remove {
   min-width: 7.2rem;
+  color: rgba(255, 139, 121, 0.86);
+}
+
+.saved-mac-list__remove:hover {
+  color: #ffd2ca;
+  border-color: rgba(255, 139, 121, 0.56);
 }
 
 .text-input {

@@ -638,50 +638,46 @@ function ConnectionPanelModal({
         </div>
 
         <div className="connect-modal__body">
-          <div className="connect-modal__panel">
-            <p className="connect-modal__lede">
-              Active cube: <strong>{cubeName}</strong>
-            </p>
-            <div className="connect-modal__hero connect-modal__hero--compact">
-              <button
-                className="connect-modal__primary-action connect-modal__primary-action--compact"
-                onClick={() => void onDisconnect()}
-                type="button"
-              >
-                DISCONNECT
-              </button>
-            </div>
+          <p className="connect-modal__lede">
+            Active cube: <strong>{cubeName}</strong>
+          </p>
+          <div className="connect-modal__hero connect-modal__hero--compact">
+            <button
+              className="connect-modal__primary-action connect-modal__primary-action--compact connect-modal__primary-action--danger"
+              onClick={() => void onDisconnect()}
+              type="button"
+            >
+              DISCONNECT
+            </button>
           </div>
 
-          <div className="connect-modal__panel">
-            <div className="connect-modal__saved-header">
-              <h3>SAVED MAC ADDRESSES</h3>
-            </div>
+          <div className="connect-modal__saved-header">
+            <h3>SAVED MAC ADDRESSES</h3>
+          </div>
 
-            {savedEntries.length > 0 ? (
-              <div className="saved-mac-list">
-                {savedEntries.map(([deviceName, macAddress]) => (
-                  <div className="saved-mac-list__item" key={deviceName}>
-                    <div>
-                      <strong>{deviceName}</strong>
-                      <p>{macAddress}</p>
-                    </div>
-                    <button
-                      className="ghost-button saved-mac-list__remove"
-                      onClick={() => {
-                        onRemoveSavedMacAddress(deviceName);
-                      }}
-                      type="button"
-                    >
-                      REMOVE
-                    </button>
+          {savedEntries.length > 0 ? (
+            <div className="saved-mac-list">
+              {savedEntries.map(([deviceName, macAddress]) => (
+                <div className="saved-mac-list__item" key={deviceName}>
+                  <div>
+                    <strong>{deviceName}</strong>
+                    <p>{macAddress}</p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="connect-modal__lede">No saved MAC addresses yet.</p>
-            )}
-          </div>
+                  <button
+                    className="ghost-button saved-mac-list__remove"
+                    onClick={() => {
+                      onRemoveSavedMacAddress(deviceName);
+                    }}
+                    type="button"
+                  >
+                    REMOVE
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="connect-modal__lede">No saved MAC addresses yet.</p>
+          )}
         </div>
       </section>
     </dialog>
@@ -694,13 +690,21 @@ function HoldGuideModal({
   onClose: () => void;
 }) {
   return (
-    <div className="modal-backdrop" onMouseDown={onClose} role="presentation">
-      <section
-        className="pixel-panel connect-modal hold-guide-modal"
-        onMouseDown={(event) => {
-          event.stopPropagation();
-        }}
-      >
+    <dialog
+      className="modal-backdrop"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      open
+    >
+      <button
+        aria-label="Close hold guide modal"
+        className="modal-backdrop__scrim"
+        onClick={onClose}
+        type="button"
+      />
+      <section className="pixel-panel connect-modal hold-guide-modal">
         <div className="connect-modal__header">
           <h2>HOW TO HOLD THE CUBE</h2>
           <button className="ghost-button" onClick={onClose} type="button">
@@ -708,24 +712,15 @@ function HoldGuideModal({
           </button>
         </div>
 
-        <div className="connect-modal__panel hold-guide-modal__panel">
+        <div className="connect-modal__body">
           <p className="connect-modal__lede">
-            Hold the cube with the white face on top and the green face pointing
-            toward you.
+            We denote faces by the color of its center piece (the piece in the
+            middle of each face). It&apos;s recommended you hold the cube with
+            the white face on top and green face towards you.
           </p>
-          <div className="hold-guide-modal__grid">
-            <div>
-              <span>TOP</span>
-              <strong>WHITE FACE</strong>
-            </div>
-            <div>
-              <span>FRONT</span>
-              <strong>GREEN FACE</strong>
-            </div>
-          </div>
         </div>
       </section>
-    </div>
+    </dialog>
   );
 }
 
