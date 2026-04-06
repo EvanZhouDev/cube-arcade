@@ -483,15 +483,74 @@ input:focus-visible {
 }
 
 .snake-stage {
-  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
 }
 
-.snake-stage--prompt .board--snake {
-  filter: saturate(0.76) brightness(0.7);
+.snake-stage__screen {
+  --crt-red: rgb(218, 49, 49);
+  --crt-green: rgb(112, 159, 115);
+  --crt-blue: rgb(40, 129, 206);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: min(37rem, 100%);
+  padding: 1rem;
+  overflow: hidden;
+  border-radius: 2.6rem / 1.4rem;
+  background: radial-gradient(
+      circle at 50% 42%,
+      rgba(87, 209, 99, 0.12),
+      transparent 62%
+    ), linear-gradient(180deg, rgb(25, 25, 30), rgb(12, 14, 18));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 0 3rem
+    rgba(255, 255, 255, 0.03), inset 0 0 5rem rgba(0, 0, 0, 0.58), 0 1.4rem 3rem
+    rgba(0, 0, 0, 0.38);
+  transform: perspective(1200px) rotateX(1.1deg) scaleX(0.992) scaleY(1.018);
+  isolation: isolate;
+}
+
+.snake-stage__screen::before,
+.snake-stage__screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: overlay;
+}
+
+.snake-stage__screen::before {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(218, 49, 49, 0.16) 0px,
+    rgba(112, 159, 115, 0.16) 2px,
+    rgba(40, 129, 206, 0.14) 4px
+  );
+  opacity: 0.34;
+}
+
+.snake-stage__screen::after {
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(218, 49, 49, 0.15) 0px,
+      rgba(112, 159, 115, 0.14) 2px,
+      rgba(40, 129, 206, 0.14) 4px
+    ),
+    radial-gradient(
+      circle at 50% 42%,
+      transparent 44%,
+      rgba(0, 0, 0, 0.18) 76%,
+      rgba(0, 0, 0, 0.42) 100%
+    );
+  opacity: 0.42;
+}
+
+.snake-stage--prompt .snake-stage__screen {
+  filter: saturate(0.86) brightness(0.82);
 }
 
 .snake-stage__prompt {
@@ -513,7 +572,8 @@ input:focus-visible {
   letter-spacing: 0.16em;
   line-height: 1.75;
   text-transform: uppercase;
-  text-shadow: 0 0 1rem rgba(0, 0, 0, 0.72);
+  text-shadow: 0 0 0.2em currentColor, 1px 1px rgba(255, 0, 255, 0.35), -1px
+    -1px rgba(0, 255, 255, 0.28), 0 0 1rem rgba(0, 0, 0, 0.72);
 }
 
 .game-panel__topline {
@@ -616,13 +676,16 @@ input:focus-visible {
 
 .board--snake {
   grid-template-columns: repeat(14, 1fr);
-  width: min(34rem, 100%);
+  position: relative;
+  z-index: 1;
+  width: 100%;
   aspect-ratio: 1;
   padding: 0.35rem;
   gap: 0.22rem;
-  background: rgba(87, 209, 99, 0.04);
-  border: 1px solid rgba(87, 209, 99, 0.14);
+  background: rgba(87, 209, 99, 0.035);
+  border: 1px solid rgba(87, 209, 99, 0.12);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  filter: saturate(1.08);
 }
 
 .board--2048 {
@@ -656,7 +719,7 @@ input:focus-visible {
 }
 
 .game-view--snake .board__cell--empty {
-  background: rgba(87, 209, 99, 0.08);
+  background: rgba(87, 209, 99, 0.065);
   border-color: rgba(87, 209, 99, 0.04);
 }
 
@@ -666,7 +729,7 @@ input:focus-visible {
 }
 
 .game-view--snake .board__cell--food {
-  box-shadow: 0 0 18px rgba(255, 230, 110, 0.32);
+  box-shadow: 0 0 20px rgba(255, 230, 110, 0.32);
 }
 
 .board__cell--head {
@@ -676,7 +739,7 @@ input:focus-visible {
 
 .game-view--snake .board__cell--head {
   background: #ddff8b;
-  box-shadow: 0 0 18px rgba(221, 255, 139, 0.28);
+  box-shadow: 0 0 20px rgba(221, 255, 139, 0.28);
 }
 
 .board__cell--body {

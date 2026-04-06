@@ -26,19 +26,21 @@ export function SnakeView({
           "snake-stage--prompt": Boolean(prompt),
         })}
       >
-        <div className="board board--snake">
-          {toGridEntries(snapshot.grid).map((entry) => (
-            <div
-              className={clsx("board__cell", `board__cell--${entry.value}`)}
-              key={entry.key}
-            />
-          ))}
-        </div>
-        {prompt ? (
-          <div className="snake-stage__prompt">
-            <span>{prompt}</span>
+        <div className="snake-stage__screen">
+          <div className="board board--snake">
+            {toGridEntries(snapshot.grid).map((entry) => (
+              <div
+                className={clsx("board__cell", `board__cell--${entry.value}`)}
+                key={entry.key}
+              />
+            ))}
           </div>
-        ) : null}
+          {prompt ? (
+            <div className="snake-stage__prompt">
+              <span>{prompt}</span>
+            </div>
+          ) : null}
+        </div>
       </div>
     </GamePanel>
   );
