@@ -21,7 +21,6 @@ export type {
   GameSnapshotBase,
   Quaternion,
 } from "@cube-arcade/game-sdk";
-export { breakoutGame, createBreakoutGame } from "./games/breakout";
 export { create2048Game, game2048 } from "./games/game2048";
 export { createSnakeGame, snakeGame } from "./games/snake";
 export { createTetrisGame, tetrisGame } from "./games/tetris";
@@ -38,7 +37,6 @@ export type {
   ArcadeGameId,
   ArcadeGameMeta,
   ArcadeSnapshot,
-  BreakoutSnapshot,
   Game2048Snapshot,
   SnakeSnapshot,
   TetrisSnapshot,

@@ -25,6 +25,7 @@ export interface Game2048Snapshot extends BaseGameSnapshot<"2048"> {
 }
 
 export interface TetrisSnapshot extends BaseGameSnapshot<"tetris"> {
+  awaitingStart: boolean;
   board: (string | null)[][];
   id: "tetris";
   level: number;
@@ -53,11 +54,7 @@ export interface BreakoutSnapshot extends BaseGameSnapshot<"breakout"> {
   };
 }
 
-export type ArcadeSnapshot =
-  | SnakeSnapshot
-  | Game2048Snapshot
-  | TetrisSnapshot
-  | BreakoutSnapshot;
+export type ArcadeSnapshot = SnakeSnapshot | Game2048Snapshot | TetrisSnapshot;
 
 export type ArcadeGameId = ArcadeSnapshot["id"];
 export type ArcadeGameDefinition<TId extends ArcadeGameId = ArcadeGameId> =

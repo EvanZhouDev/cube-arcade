@@ -21,6 +21,7 @@ interface SnakeState {
   direction: Direction;
   food: Point;
   gameOver: boolean;
+  pendingDirection: Direction | null;
   score: number;
   seed: number;
   segments: Point[];
@@ -53,6 +54,7 @@ function createInitialState(seed = 1): SnakeState {
     direction: "right",
     food: { x: 0, y: 0 },
     gameOver: false,
+    pendingDirection: null,
     score: 0,
     seed,
     segments: [
@@ -119,11 +121,12 @@ function applyStep(state: SnakeState): SnakeState {
     return state;
   }
 
+  const direction = state.pendingDirection ?? state.direction;
   const head = state.segments[0];
   if (!head) {
     return state;
   }
-  const nextHead = getNextHead(head, state.direction);
+  const nextHead = getNextHead(head, direction);
   const ateFood = nextHead.x === state.food.x && nextHead.y === state.food.y;
   const outOfBounds =
     nextHead.x < 0 ||
@@ -140,7 +143,9 @@ function applyStep(state: SnakeState): SnakeState {
   if (outOfBounds || hitsSelf) {
     return {
       ...state,
+      direction,
       gameOver: true,
+      pendingDirection: null,
     };
   }
 
@@ -153,7 +158,9 @@ function applyStep(state: SnakeState): SnakeState {
     const [food, nextSeed] = placeFood(nextSegments, state.seed);
     return {
       ...state,
+      direction,
       food,
+      pendingDirection: null,
       score: state.score + 10,
       seed: nextSeed,
       segments: nextSegments,
@@ -163,6 +170,8 @@ function applyStep(state: SnakeState): SnakeState {
 
   return {
     ...state,
+    direction,
+    pendingDirection: null,
     segments: nextSegments,
   };
 }
@@ -173,15 +182,12 @@ function beginRun(state: SnakeState, direction: Direction): SnakeState {
       ...state,
       awaitingStart: false,
       direction,
+      pendingDirection: null,
     };
   }
 
   if (state.gameOver || state.won) {
-    return {
-      ...createInitialState(state.seed + 1),
-      awaitingStart: false,
-      direction,
-    };
+    return createInitialState(state.seed + 1);
   }
 
   if (isOpposite(state.direction, direction)) {
@@ -190,7 +196,7 @@ function beginRun(state: SnakeState, direction: Direction): SnakeState {
 
   return {
     ...state,
-    direction,
+    pendingDirection: direction,
   };
 }
 

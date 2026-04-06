@@ -122,6 +122,8 @@ function slideLine(values: number[]): {
 
 export const slideLineForTesting = slideLine;
 
+export type Game2048TestState = State2048;
+
 function canMove(board: number[]): boolean {
   if (board.some((value) => value === 0)) {
     return true;
@@ -156,28 +158,43 @@ function applyDirectionalMove(
   return { moved, nextBoard, scoreDelta };
 }
 
+function applyCommandToState(
+  state: State2048,
+  command: "left" | "right" | "up" | "down",
+): State2048 {
+  if (state.gameOver || state.won) {
+    return createInitialState(state.seed + 1);
+  }
+
+  const result = applyDirectionalMove(state.board, command);
+  if (!result.moved) {
+    return state;
+  }
+
+  const [nextBoard, nextSeed] = spawnTile(result.nextBoard, state.seed);
+  return {
+    board: nextBoard,
+    gameOver: !canMove(nextBoard),
+    score: state.score + result.scoreDelta,
+    seed: nextSeed,
+    won: nextBoard.some((value) => value >= 2048),
+  };
+}
+
+export function apply2048CommandForTesting(
+  state: Game2048TestState,
+  command: "left" | "right" | "up" | "down",
+): Game2048TestState {
+  return applyCommandToState(state, command);
+}
+
 export function create2048Game(
   seed?: number,
 ): GameController<Game2048Snapshot> {
   let state = createInitialState(seed);
 
   function applyCommand(command: "left" | "right" | "up" | "down") {
-    if (state.gameOver || state.won) {
-      return;
-    }
-    const result = applyDirectionalMove(state.board, command);
-    if (!result.moved) {
-      return;
-    }
-
-    const [nextBoard, nextSeed] = spawnTile(result.nextBoard, state.seed);
-    state = {
-      board: nextBoard,
-      gameOver: !canMove(nextBoard),
-      score: state.score + result.scoreDelta,
-      seed: nextSeed,
-      won: nextBoard.some((value) => value >= 2048),
-    };
+    state = applyCommandToState(state, command);
   }
 
   return {

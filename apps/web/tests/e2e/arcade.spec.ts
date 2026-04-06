@@ -20,17 +20,7 @@ test("simulator drives the arcade flow across multiple games", async ({
       return page.locator(".board--tetris .board__cell--filled").count();
     })
     .toBeGreaterThan(0);
-
-  await page.getByTestId("game-card-breakout").click();
-  const ball = page.locator(".breakout__ball");
-  const before = await ball.boundingBox();
-  await page.getByTestId("sim-move-F").click();
-  await page.waitForTimeout(250);
-  const after = await ball.boundingBox();
-
-  expect(before?.y).not.toBeUndefined();
-  expect(after?.y).not.toBeUndefined();
-  expect(after?.y).toBeLessThan(before?.y ?? 0);
+  await expect(page.getByTestId("game-card-breakout")).toHaveCount(0);
 });
 
 test("debug simulator controls stay hidden on the main arcade route", async ({

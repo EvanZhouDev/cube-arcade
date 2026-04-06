@@ -21,6 +21,7 @@ interface ActivePiece {
 interface TetrisState {
   accumulatorMs: number;
   active: ActivePiece;
+  awaitingStart: boolean;
   bag: TetrominoType[];
   board: (TetrominoType | null)[][];
   gameOver: boolean;
@@ -176,18 +177,20 @@ const COLORS: Record<TetrominoType, string> = {
   Z: "#ef5955",
 };
 
+export type TetrisTestState = TetrisState;
+
 const META: GameMeta<"tetris"> = {
-  accent: "#8f63ff",
+  accent: "#7084e8",
   controls: [
     { command: "left", effect: "Shift the piece left", label: "Move left" },
     { command: "right", effect: "Shift the piece right", label: "Move right" },
     { command: "down", effect: "Soft drop by one row", label: "Soft drop" },
     { command: "up", effect: "Hard drop instantly", label: "Hard drop" },
-    { command: "primary", effect: "Rotate clockwise", label: "Rotate CW" },
+    { command: "primary", effect: "Rotate clockwise", label: "CW" },
     {
       command: "secondary",
       effect: "Rotate counterclockwise",
-      label: "Rotate CCW",
+      label: "CCW",
     },
   ],
   description:
@@ -310,6 +313,7 @@ function lockPiece(state: TetrisState): TetrisState {
   return {
     accumulatorMs: 0,
     active,
+    awaitingStart: false,
     bag: draw.bag,
     board: compacted,
     gameOver: collides(compacted, active),
@@ -328,6 +332,7 @@ function createInitialState(seed = 11): TetrisState {
   return {
     accumulatorMs: 0,
     active: createPiece(draw.next),
+    awaitingStart: true,
     bag: draw.bag,
     board: emptyBoard(),
     gameOver: false,
@@ -363,17 +368,121 @@ function movePiece(
   };
 }
 
+function rotateState(type: TetrominoType, rotation: number, direction: 1 | -1) {
+  const rotations = SHAPES[type].length;
+  return (rotation + direction + rotations) % rotations;
+}
+
+function wallKickCandidates(
+  type: TetrominoType,
+  fromRotation: number,
+  direction: 1 | -1,
+): Cell[] {
+  const from = fromRotation % SHAPES[type].length;
+  const to = rotateState(type, fromRotation, direction);
+  const key = `${from}->${to}`;
+
+  const jlstzKicks: Record<string, Cell[]> = {
+    "0->1": [
+      [0, 0],
+      [-1, 0],
+      [-1, 1],
+      [0, -2],
+      [-1, -2],
+    ],
+    "1->0": [
+      [0, 0],
+      [1, 0],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ],
+    "1->2": [
+      [0, 0],
+      [1, 0],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ],
+    "2->1": [
+      [0, 0],
+      [-1, 0],
+      [-1, 1],
+      [0, -2],
+      [-1, -2],
+    ],
+    "2->3": [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, -2],
+      [1, -2],
+    ],
+    "3->2": [
+      [0, 0],
+      [-1, 0],
+      [-1, -1],
+      [0, 2],
+      [-1, 2],
+    ],
+    "3->0": [
+      [0, 0],
+      [-1, 0],
+      [-1, -1],
+      [0, 2],
+      [-1, 2],
+    ],
+    "0->3": [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, -2],
+      [1, -2],
+    ],
+  };
+
+  const iKicks: Record<string, Cell[]> = {
+    "0->1": [
+      [0, 0],
+      [-2, 0],
+      [1, 0],
+      [-2, -1],
+      [1, 2],
+    ],
+    "1->0": [
+      [0, 0],
+      [2, 0],
+      [-1, 0],
+      [2, 1],
+      [-1, -2],
+    ],
+  };
+
+  if (type === "I") {
+    return iKicks[key] ?? iKicks[`${to}->${from}`] ?? [[0, 0]];
+  }
+
+  if (type === "O") {
+    return [[0, 0]];
+  }
+
+  return jlstzKicks[key] ?? [[0, 0]];
+}
+
 function rotatePiece(state: TetrisState, direction: 1 | -1): TetrisState {
-  const rotations = SHAPES[state.active.type].length;
   const candidate = {
     ...state.active,
-    rotation: (state.active.rotation + direction + rotations) % rotations,
+    rotation: rotateState(state.active.type, state.active.rotation, direction),
   };
-  const kicks = [0, -1, 1, -2, 2];
-  for (const offset of kicks) {
+  for (const [offsetX, offsetY] of wallKickCandidates(
+    state.active.type,
+    state.active.rotation,
+    direction,
+  )) {
     const kicked = {
       ...candidate,
-      x: candidate.x + offset,
+      x: candidate.x + offsetX,
+      y: candidate.y + offsetY,
     };
     if (!collides(state.board, kicked)) {
       return {
@@ -383,6 +492,73 @@ function rotatePiece(state: TetrisState, direction: 1 | -1): TetrisState {
     }
   }
   return state;
+}
+
+export function rotateTetrisStateForTesting(
+  state: TetrisTestState,
+  direction: 1 | -1,
+): TetrisTestState {
+  return rotatePiece(state, direction);
+}
+
+function applyGameplayCommand(state: TetrisState, command: CubeCommand): TetrisState {
+  if (command === "left") {
+    return movePiece(state, -1, 0);
+  }
+
+  if (command === "right") {
+    return movePiece(state, 1, 0);
+  }
+
+  if (command === "down") {
+    const next = movePiece(state, 0, 1);
+    return next === state ? lockPiece(state) : { ...next, score: next.score + 1 };
+  }
+
+  if (command === "up") {
+    return hardDrop(state);
+  }
+
+  if (command === "primary") {
+    return rotatePiece(state, 1);
+  }
+
+  if (command === "secondary") {
+    return rotatePiece(state, -1);
+  }
+
+  return state;
+}
+
+function applyTetrisCommand(state: TetrisState, command: CubeCommand): TetrisState {
+  if (state.gameOver || state.won) {
+    return applyGameplayCommand(
+      {
+        ...createInitialState(state.seed + 1),
+        awaitingStart: false,
+      },
+      command,
+    );
+  }
+
+  if (state.awaitingStart) {
+    return applyGameplayCommand(
+      {
+        ...state,
+        awaitingStart: false,
+      },
+      command,
+    );
+  }
+
+  return applyGameplayCommand(state, command);
+}
+
+export function applyTetrisCommandForTesting(
+  state: TetrisTestState,
+  command: CubeCommand,
+): TetrisTestState {
+  return applyTetrisCommand(state, command);
 }
 
 function hardDrop(state: TetrisState): TetrisState {
@@ -416,31 +592,13 @@ export const tetrisGame = defineGame({
     let state = createInitialState(seed);
 
     function applyCommand(command: CubeCommand) {
-      if (state.gameOver) {
-        return;
-      }
-      if (command === "left") {
-        state = movePiece(state, -1, 0);
-      } else if (command === "right") {
-        state = movePiece(state, 1, 0);
-      } else if (command === "down") {
-        const next = movePiece(state, 0, 1);
-        state =
-          next === state
-            ? lockPiece(state)
-            : { ...next, score: next.score + 1 };
-      } else if (command === "up") {
-        state = hardDrop(state);
-      } else if (command === "primary") {
-        state = rotatePiece(state, 1);
-      } else if (command === "secondary") {
-        state = rotatePiece(state, -1);
-      }
+      state = applyTetrisCommand(state, command);
     }
 
     return {
       getSnapshot() {
         return {
+          awaitingStart: state.awaitingStart,
           board: renderBoard(state),
           gameOver: state.gameOver,
           id: "tetris",
@@ -463,7 +621,7 @@ export const tetrisGame = defineGame({
         state = createInitialState(nextSeed);
       },
       tick(deltaMs: number) {
-        if (state.gameOver) {
+        if (state.awaitingStart || state.gameOver || state.won) {
           return;
         }
         let accumulatorMs = state.accumulatorMs + deltaMs;
