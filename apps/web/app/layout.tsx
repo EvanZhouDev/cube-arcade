@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Press_Start_2P, VT323 } from "next/font/google";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${arcadeDisplay.variable} ${arcadeText.variable}`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
