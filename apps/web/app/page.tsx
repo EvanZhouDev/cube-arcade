@@ -42,6 +42,7 @@ const TURN_SYMBOL = {
   counterclockwise: "↺",
   double: "⟲",
 } as const;
+const GITHUB_REPO_URL = "https://github.com/EvanZhouDev/cube-arcade";
 const DEV_KEYBOARD_MOVE_MAP: Record<
   string,
   (typeof SIMULATOR_MOVES)[number]["move"]
@@ -324,6 +325,14 @@ function PageContent() {
                 </button>
               ))}
             </div>
+            <a
+              className="subtle-link game-sidebar__github-link"
+              href={GITHUB_REPO_URL}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Suggest or add your own games on GitHub
+            </a>
           </aside>
 
           <section
@@ -382,6 +391,14 @@ function PageContent() {
                 </div>
               ) : null}
             </div>
+            <a
+              className="subtle-link cabinet__github-link"
+              href={GITHUB_REPO_URL}
+              rel="noreferrer"
+              target="_blank"
+            >
+              View Source on GitHub
+            </a>
           </section>
 
           <aside
